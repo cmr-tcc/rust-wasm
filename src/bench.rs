@@ -7,8 +7,7 @@ pub fn measure<F: FnMut()>(mut function: F, runs: usize) -> f64 {
         function();
     }
 
-    let total_ms = start.elapsed().as_millis() as f64;
-    let mean_ms = total_ms / runs as f64;
+    let total_ms = start.elapsed().as_micros() as f64 / 1000.0;
 
-    mean_ms
+    total_ms / runs as f64
 }
