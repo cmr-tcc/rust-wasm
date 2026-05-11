@@ -1,0 +1,11 @@
+{
+  "name": "rust-wasm-bench",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "bench": "node runner.js"
+  },
+  "dependencies": {
+    "puppeteer": "^24.43.1"
+  }
+}
