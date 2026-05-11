@@ -7,17 +7,21 @@
 <body>
 <pre id="output">Executando benchmarks...</pre>
 <script type="module">
+
 import init, { fibonacci } from './pkg/rust_wasm.js';
 
 function measure(fn, warmup, runs) {
+    // JIT warmup
     for (let i = 0; i < warmup; i++) {
         fn();
     }
 
     const start = performance.now();
+
     for (let i = 0; i < runs; i++) {
         fn();
     }
+
     const totalMs = performance.now() - start;
 
     return totalMs / runs;
@@ -26,10 +30,12 @@ function measure(fn, warmup, runs) {
 async function main() {
     await init();
 
-    const meanMs = measure(() => fibonacci(40n), 30, 200);
-
     const results = [
-        { algorithm: 'fibonacci', input: 40, mean_ms: meanMs },
+        { 
+            algorithm: 'fibonacci', 
+            input: 40, 
+            mean_ms: measure(() => fibonacci(40n), 30, 200) 
+        },
     ];
 
     window.__benchmarkResults = results;
