@@ -1,3 +1,5 @@
 /target
 /web/pkg
 /node_modules
+.claude/
+CLAUDE.md
