@@ -39,4 +39,4 @@ WORKDIR /app
 COPY . .
 
 # Run benchmark
-CMD ["./build.sh"]
+CMD ["./run.sh"]
