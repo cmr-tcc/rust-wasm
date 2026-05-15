@@ -20,17 +20,23 @@ RUN cargo install wasm-pack --version 0.14.0
 WORKDIR /app
 
 # Copy Node package files
-COPY package.json package-lock.json ./
+COPY javascript/package.json javascript/package-lock.json ./javascript/
 
 # Install Node dependencies
+WORKDIR /app/javascript
 RUN npm install
+WORKDIR /app
+
+# Copy the Rust files
+COPY rust/ ./rust/
+
+# Build the Rust
+WORKDIR /app/rust
+RUN wasm-pack build --target web --out-dir web/pkg
+WORKDIR /app
 
 # Copy the rest of the project files
-# 🌠 Do this in the end, copy first only Rust to improve cache, when i change JS it re-runs the layer below, so split between node and rust to compare later
 COPY . .
-
-# Build the Rust code to WebAssembly
-RUN wasm-pack build --target web --out-dir web/pkg
 
 # Run benchmark
 CMD ["./build.sh"]

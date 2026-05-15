@@ -1,0 +1,5 @@
+services:
+  bench:
+    build:
+      context: .
+      dockerfile: Dockerfile
