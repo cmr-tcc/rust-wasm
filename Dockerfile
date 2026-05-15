@@ -1,46 +1,36 @@
-# Base image
-FROM ghcr.io/puppeteer/puppeteer:latest
+# Node 24 and Puppeteer image
+FROM ghcr.io/puppeteer/puppeteer:24.43.1
 
-# Avoid interactive prompts
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install dependencies
-RUN apt update && apt install -y curl && rm -rf /var/lib/apt/lists/*
-
-# Install Node.js (LTS)
-RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
-    apt update && apt install -y nodejs && \
-    rm -rf /var/lib/apt/lists/*
+# Required for Puppeteer
+USER root
 
 # Install Rust
 ENV RUSTUP_HOME=/usr/local/rustup
 ENV CARGO_HOME=/usr/local/cargo
 ENV PATH=${CARGO_HOME}/bin:${PATH}
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain 1.95.0
 
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
-
-# Add WebAssembly target
+# Set Rust environment variables
 RUN rustup target add wasm32-unknown-unknown
 
 # Install wasm-pack
-RUN cargo install wasm-pack --version 0.13.1
+RUN cargo install wasm-pack --version 0.14.0
 
-# Verify installations
-RUN node --version && \
-    npm --version && \
-    rustc --version && \
-    cargo --version && \
-    wasm-pack --version
-
-# Default working directory
+# Setup current directory
 WORKDIR /app
 
-COPY . .
+# Copy Node package files
+COPY package.json package-lock.json ./
 
-RUN wasm-pack build --target web --out-dir web/pkg
-
+# Install Node dependencies
 RUN npm install
 
-RUN chmod +x ./build.sh
+# Copy the rest of the project files
+# 🌠 Do this in the end, copy first only Rust to improve cache, when i change JS it re-runs the layer below, so split between node and rust to compare later
+COPY . .
 
-CMD "./build.sh"
+# Build the Rust code to WebAssembly
+RUN wasm-pack build --target web --out-dir web/pkg
+
+# Run benchmark
+CMD ["./build.sh"]
