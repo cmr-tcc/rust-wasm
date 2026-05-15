@@ -32,7 +32,7 @@ COPY rust/ ./rust/
 
 # Build the Rust
 WORKDIR /app/rust
-RUN wasm-pack build --target web --out-dir web/pkg
+RUN wasm-pack build --target web --out-dir /app/javascript/web
 WORKDIR /app
 
 # Copy the rest of the project files
