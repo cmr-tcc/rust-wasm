@@ -1,8 +1,10 @@
 # Base image
-FROM rust:1.88
+FROM node:22
 
 # Avoid interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
+
+USER root
 
 # Install dependencies
 RUN apt update && apt install -y \
@@ -50,10 +52,11 @@ RUN apt update && apt install -y \
     xdg-utils \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js (LTS)
-RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && \
-    apt update && apt install -y nodejs && \
-    rm -rf /var/lib/apt/lists/*
+# Install Rust
+ENV RUSTUP_HOME=/usr/local/rustup
+ENV CARGO_HOME=/usr/local/cargo
+ENV PATH=${CARGO_HOME}/bin:${PATH}
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 
 # Add WebAssembly target
 RUN rustup target add wasm32-unknown-unknown
