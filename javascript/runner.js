@@ -14,7 +14,12 @@ const mimeTypes = {
 };
 
 const server = createServer(async (request, response) => {
-    const urlPath = request.url === '/' ? '/index.html' : request.url;
+    const requestUrl = new URL(request.url, `http://localhost:${port}`);
+
+    const urlPath = requestUrl.pathname === '/'
+        ? '/index.html'
+        : requestUrl.pathname;
+
     const filePath = join(webDirectory, urlPath);
 
     try {
@@ -39,15 +44,21 @@ const browser = await puppeteer.launch({
 });
 const page = await browser.newPage();
 
-await page.goto(`http://localhost:${port}`);
+const algorithm = process.argv[2];
+const iterations = process.argv[3];
+const wasmJit = process.argv[4];
+
+await page.goto(
+    `http://localhost:${port}?algorithm=${algorithm}&iterations=${iterations}&wasmJit=${wasmJit}`
+);
 
 await page.waitForFunction(
-    () => window.__benchmarkResults !== undefined || window.__benchmarkError !== undefined,
+    () => window.__benchmarkResult !== undefined || window.__benchmarkError !== undefined,
     { timeout: 300_000 }
 );
 
 const results = await page.evaluate(
-    () => window.__benchmarkResults ?? { error: window.__benchmarkError }
+    () => window.__benchmarkResult ?? { error: window.__benchmarkError }
 );
 
 console.log(JSON.stringify(results, null, 2));

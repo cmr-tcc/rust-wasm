@@ -24,22 +24,30 @@ function measure(fn, warmup, runs) {
 
     const totalMs = performance.now() - start;
 
-    return totalMs / runs;
+    return Number((totalMs / runs).toFixed(3));
 }
 
 async function main() {
     await init();
 
-    const results = [
-        { 
-            algorithm: 'fibonacci', 
-            input: 40, 
-            mean_ms: measure(() => fibonacci(40n), 30, 200) 
-        },
-    ];
+    const params = new URLSearchParams(window.location.search);
+    const algorithm = params.get('algorithm');
+    const iterations = Number(params.get('iterations'))
+    const wasmJit = Number(params.get('wasmJit'));
 
-    window.__benchmarkResults = results;
-    document.getElementById('output').textContent = JSON.stringify(results, null, 2);
+    let result = {};
+    switch (algorithm) {
+        case 'fibonacci':
+            result = {
+                mean_ms: measure(() => fibonacci(40n), wasmJit, iterations)
+            };
+            break;
+        default:
+            throw new Error(`Algoritmo não encontrado: ${algorithm}`);
+    }
+
+    window.__benchmarkResult = result;
+    document.getElementById('output').textContent = JSON.stringify(result, null, 2);
 }
 
 main().catch((error) => {

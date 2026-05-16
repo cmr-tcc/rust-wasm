@@ -38,5 +38,5 @@ WORKDIR /app
 # Copy the rest of the project files
 COPY . .
 
-# Run benchmark
-CMD ["./run.sh"]
+# Wait for commands
+CMD ["sleep", "infinity"]
