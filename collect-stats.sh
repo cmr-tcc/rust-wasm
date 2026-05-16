@@ -23,11 +23,14 @@ collect_stats() {
   (
     while true; do
       DOCKER_STATS=$(
-        docker stats "$CONTAINER_ID" --no-stream --format "{{.CPUPerc}},{{.MemPerc}}"
+        docker stats "$CONTAINER_ID" --no-stream --format "{{.CPUPerc}},{{.MemUsage}}"
       )
-      TIMESTAMP=$(date +%s)
 
-      echo "$TIMESTAMP,$DOCKER_STATS"
+      TIMESTAMP=$(date +%s)
+      CPU=$(echo "$DOCKER_STATS" | cut -d',' -f1)
+      MEMORY=$(echo "$DOCKER_STATS" | cut -d',' -f2 | cut -d'/' -f1 | xargs)
+
+      echo "$TIMESTAMP,$CPU,$MEMORY"
 
       sleep 1
     done
