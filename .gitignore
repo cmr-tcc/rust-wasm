@@ -5,3 +5,4 @@
 CLAUDE.md
 stats/*.csv
 stats/*.txt
+.env

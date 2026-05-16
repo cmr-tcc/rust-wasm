@@ -3,12 +3,17 @@
 set -e
 
 CONFIG_FILE="config.json"
-OUTPUT_FILE="stats/$(date +%Y-%m-%d_%H-%M).json"
 
 if [[ ! -f "$CONFIG_FILE" ]]; then
     echo "Error: $CONFIG_FILE not found"
     exit 1
 fi
+
+set -a
+source .env
+set +a
+
+OUTPUT_FILE="stats/$(date +%Y-%m-%d_%H-%M).json"
 
 docker compose build
 
@@ -19,5 +24,5 @@ jq -c '.[]' "$CONFIG_FILE" | while read -r item; do
 
     ./collect-stats.sh "$algorithm" "$iterations" "$wasm_jit"
 
-    python3 format-stats.py "$algorithm" "$iterations" "$wasm_jit" "$OUTPUT_FILE"
+    python3 format-stats.py "$algorithm" "$iterations" "$wasm_jit" "$OUTPUT_FILE" "$RUNNER"
 done
