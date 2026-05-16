@@ -1,7 +1,13 @@
 import csv
 import json
 import re
-from datetime import datetime
+import sys
+from pathlib import Path
+
+algorithm = sys.argv[1]
+iterations = int(sys.argv[2])
+wasm_jit = int(sys.argv[3])
+output_file = sys.argv[4]
 
 def load_csv(path):
     result = []
@@ -30,20 +36,26 @@ def extract_mean_ms(path):
     return float(match.group(1))
 
 result = {
-    "description": "",
+    "algorithm": algorithm,
+    "iterations": iterations,
+    "wasm_jit": wasm_jit,
+    "rust": {
+        "mean_ms": extract_mean_ms("stats/rust-output.txt"),
+        "resource_usage": load_csv("stats/rust-stats.csv")
+    },
     "wasm": {
         "mean_ms": extract_mean_ms("stats/wasm-output.txt"),
         "resource_usage": load_csv("stats/wasm-stats.csv")
     },
-    "rust": {
-        "mean_ms": extract_mean_ms("stats/rust-output.txt"),
-        "resource_usage": load_csv("stats/rust-stats.csv")
-    }
 }
 
-timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M")
+results = []
 
-output_path = f"stats/{timestamp}.json"
+if Path(output_file).exists():
+    with open(output_file) as f:
+        results = json.load(f)
 
-with open(output_path, "w") as f:
-    json.dump(result, f, indent=4)
+results.append(result)
+
+with open(output_file, "w") as f:
+    json.dump(results, f, indent=4)

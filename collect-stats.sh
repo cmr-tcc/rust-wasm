@@ -11,7 +11,7 @@ if [ -z "$ALGORITHM" ] || [ -z "$ITERATIONS" ] || [ -z "$WASM_JIT" ]; then
   exit 1
 fi
 
-docker compose up -d --build
+docker compose up -d
 
 CONTAINER_ID=$(docker compose ps -q bench)
 
