@@ -1,4 +1,5 @@
 pub mod fibonacci;
+pub mod double;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub mod bench;
@@ -10,5 +11,10 @@ mod wasm_exports {
     #[wasm_bindgen]
     pub fn fibonacci(n: u64) -> u64 {
         crate::fibonacci::run(n)
+    }
+
+    #[wasm_bindgen]
+    pub fn double(n: u64) -> u64 {
+        crate::double::run(n)
     }
 }
