@@ -4,29 +4,21 @@ Análise comparativa de desempenho entre execução nativa e WebAssembly em nave
 
 ## Requisitos
 
-- [Rust](https://rustup.rs/)
-- [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
-- [Node.js](https://nodejs.org/)
+- [Docker](https://www.docker.com/)
+- [Python](https://www.python.org/downloads/)
 
-## Primeira execução
+## Configuração
 
 ```bash
-bash build.sh
+chmod +x ./stats.sh
+chmod +x ./collect-stats.sh
 ```
 
-## Rodando os benchmarks
+## Execução dos benchmarks
 
-**Nativo:**
 ```bash
-cargo bench --bench benchmarks
+./stats.sh
 ```
-
-**WebAssembly:**
-```bash
-npm run bench
-```
-
-> Após qualquer alteração no código Rust, rode `bash build.sh` novamente antes de `npm run bench`.
 
 ## Adicionando um algoritmo
 
@@ -35,3 +27,4 @@ npm run bench
 3. Adicionar o export em `rust/src/lib.rs` dentro de `mod wasm_exports`
 4. Adicionar a medição em `rust/benches/benchmarks.rs`
 5. Adicionar a chamada em `javascript/web/index.html`
+6. Configure os parâmetros no `config.json`

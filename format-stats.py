@@ -38,6 +38,7 @@ def extract_mean_ms(path):
 
 result = {
     "algorithm": algorithm,
+    "description": "",
     "iterations": iterations,
     "wasm_jit": wasm_jit,
     "runner": runner,

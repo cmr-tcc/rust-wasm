@@ -1,12 +1,12 @@
 [
   {
     "algorithm": "fibonacci",
-    "iterations": 20,
+    "iterations": 200,
     "wasm_jit": 30
   },
   {
     "algorithm": "double",
-    "iterations": 20,
+    "iterations": 200,
     "wasm_jit": 30
   }
 ]
