@@ -1,3 +1,4 @@
+- Adicionar mais algoritmos
 - No Wasm a performance é feita no lado do JavaScript, o que inclui a sobrecarga de passar o controle para o Rust, testar medir no lado do Rust para isolar a performance dele
 - Testar deixar um tempo antes do benchmark para saber o uso em standby de CPU e de memória do container
 - Criar script em Python que gera gráficos
