@@ -16,6 +16,14 @@ fn benchmark_double(iterations: usize) {
     println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
 }
 
+fn benchmark_nsieve(iterations: usize) {
+    let mean_ms = rust_wasm::bench::measure(|| {
+        rust_wasm::nsieve::run(200_000);
+    }, iterations);
+
+    println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
+}
+
 fn main() {
     let algorithm = env::args()
         .nth(1)
@@ -30,6 +38,7 @@ fn main() {
     match algorithm.as_str() {
         "fibonacci" => benchmark_fibonacci(iterations),
         "double" => benchmark_double(iterations),
+        "nsieve" => benchmark_nsieve(iterations),
         _ => panic!("unknown algorithm: {}", algorithm),
     }
 }

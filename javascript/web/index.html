@@ -8,7 +8,7 @@
 <pre id="output">Executando benchmarks...</pre>
 <script type="module">
 
-import init, { fibonacci, double } from './rust_wasm.js';
+import init, { fibonacci, double, nsieve } from './rust_wasm.js';
 
 function measure(fn, warmup, runs) {
     // JIT warmup
@@ -45,6 +45,11 @@ async function main() {
         case 'double':
             result = {
                 mean_ms: measure(() => double(10n), wasmJit, iterations)
+            };
+            break;
+        case 'nsieve':
+            result = {
+                mean_ms: measure(() => nsieve(200000n), wasmJit, iterations)
             };
             break;
         default:
