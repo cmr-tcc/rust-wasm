@@ -1,11 +1,5 @@
 [
   {
-    "algorithm": "n_body",
-    "iterations": 200,
-    "wasm_jit": 30,
-    "parameter": 500000
-  },
-  {
     "algorithm": "fibonacci",
     "iterations": 200,
     "wasm_jit": 30,
@@ -28,5 +22,17 @@
     "iterations": 200,
     "wasm_jit": 30,
     "parameter": 10
+  },
+  {
+    "algorithm": "n_body",
+    "iterations": 200,
+    "wasm_jit": 30,
+    "parameter": 500000
+  },
+  {
+    "algorithm": "spectral_norm",
+    "iterations": 200,
+    "wasm_jit": 30,
+    "parameter": 1500
   }
 ]

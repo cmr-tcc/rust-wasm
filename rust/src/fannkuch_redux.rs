@@ -14,7 +14,7 @@ use rayon::prelude::*;
 // broken up into. The actual value may be one higher (if the number of
 // permutations doesn't divide exactly by this value) or might be set to 1 if
 // the number of permutations is lower than this value.
-const NUM_BLOCKS: u32 = 1;
+const NUM_BLOCKS: u32 = 24;
 
 fn fannkuch(n: i32) -> (i32, i32) {
     // Precompute a table a factorials to reuse all over the place.

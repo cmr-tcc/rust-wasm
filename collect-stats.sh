@@ -49,7 +49,7 @@ RUST_STATS_PID=$(collect_stats stats/rust-stats.csv)
 echo_color "Rust stats PID: $RUST_STATS_PID" --red
 
 RUST_OUTPUT=$(
-  docker exec "$CONTAINER_ID" sh -c "cd /app/rust && cargo bench --bench benchmarks -- $ALGORITHM $ITERATIONS $PARAMETER"
+  docker exec "$CONTAINER_ID" sh -c "cd /app/rust && RAYON_NUM_THREADS=1 cargo bench --bench benchmarks -- $ALGORITHM $ITERATIONS $PARAMETER"
 )
 
 kill "$RUST_STATS_PID"

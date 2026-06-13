@@ -40,6 +40,14 @@ fn benchmark_n_body(iterations: usize, parameter: u64) {
     println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
 }
 
+fn benchmark_spectral_norm(iterations: usize, parameter: u64) {
+    let mean_ms = rust_wasm::bench::measure(|| {
+        rust_wasm::spectral_norm::main(parameter);
+    }, iterations);
+
+    println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
+}
+
 fn main() {
     let algorithm = env::args()
         .nth(1)
@@ -63,6 +71,7 @@ fn main() {
         "nsieve" => benchmark_nsieve(iterations, parameter),
         "fannkuch_redux" => benchmark_fannkuch_redux(iterations, parameter),
         "n_body" => benchmark_n_body(iterations, parameter),
+        "spectral_norm" => benchmark_spectral_norm(iterations, parameter),
         _ => panic!("unknown algorithm: {}", algorithm),
     }
 }

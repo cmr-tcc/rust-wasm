@@ -3,6 +3,7 @@ pub mod double;
 pub mod nsieve;
 pub mod fannkuch_redux;
 pub mod n_body;
+pub mod spectral_norm;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub mod bench;
@@ -34,5 +35,10 @@ mod wasm_exports {
     #[wasm_bindgen]
     pub fn n_body(n: u64) -> u64 {
         crate::n_body::run(n)
+    }
+
+    #[wasm_bindgen]
+    pub fn spectral_norm(n: u64) -> u64 {
+        crate::spectral_norm::main(n)
     }
 }
