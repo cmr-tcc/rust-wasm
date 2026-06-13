@@ -4,6 +4,7 @@ pub mod nsieve;
 pub mod fannkuch_redux;
 pub mod n_body;
 pub mod spectral_norm;
+pub mod mandelbrot;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub mod bench;
@@ -40,5 +41,10 @@ mod wasm_exports {
     #[wasm_bindgen]
     pub fn spectral_norm(n: u64) -> u64 {
         crate::spectral_norm::main(n)
+    }
+
+    #[wasm_bindgen]
+    pub fn mandelbrot(n: u64) -> u64 {
+        crate::mandelbrot::main(n)
     }
 }

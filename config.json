@@ -34,5 +34,11 @@
     "iterations": 200,
     "wasm_jit": 30,
     "parameter": 1500
+  },
+  {
+    "algorithm": "mandelbrot",
+    "iterations": 200,
+    "wasm_jit": 30,
+    "parameter": 500
   }
 ]
