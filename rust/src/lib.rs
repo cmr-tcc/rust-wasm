@@ -5,6 +5,7 @@ pub mod fannkuch_redux;
 pub mod n_body;
 pub mod spectral_norm;
 pub mod mandelbrot;
+pub mod fasta;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub mod bench;
@@ -46,5 +47,10 @@ mod wasm_exports {
     #[wasm_bindgen]
     pub fn mandelbrot(n: u64) -> u64 {
         crate::mandelbrot::main(n)
+    }
+
+    #[wasm_bindgen]
+    pub fn fasta(n: u64) -> u64 {
+        crate::fasta::main(n)
     }
 }

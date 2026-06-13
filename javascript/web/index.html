@@ -7,7 +7,7 @@
 <body>
 <script type="module">
 
-import init, { fibonacci, double, nsieve, fannkuch_redux, n_body, spectral_norm, mandelbrot } from './rust_wasm.js';
+import init, { fibonacci, double, nsieve, fannkuch_redux, n_body, spectral_norm, mandelbrot, fasta } from './rust_wasm.js';
 
 function measure(fn, warmup, runs) {
     window.__benchmarkOutput = '';
@@ -74,6 +74,11 @@ async function main() {
         case 'mandelbrot':
             result = {
                 mean_ms: measure(() => mandelbrot(parameter), wasmJit, iterations)
+            }
+            break;
+        case 'fasta':
+            result = {
+                mean_ms: measure(() => fasta(parameter), wasmJit, iterations)
             }
             break;
         default:

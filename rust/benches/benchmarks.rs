@@ -56,6 +56,14 @@ fn benchmark_mandelbrot(iterations: usize, parameter: u64) {
     println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
 }
 
+fn benchmark_fasta(iterations: usize, parameter: u64) {
+    let mean_ms = rust_wasm::bench::measure(|| {
+        rust_wasm::fasta::main(parameter);
+    }, iterations);
+
+    println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
+}
+
 fn main() {
     let algorithm = env::args()
         .nth(1)
@@ -81,6 +89,7 @@ fn main() {
         "n_body" => benchmark_n_body(iterations, parameter),
         "spectral_norm" => benchmark_spectral_norm(iterations, parameter),
         "mandelbrot" => benchmark_mandelbrot(iterations, parameter),
+        "fasta" => benchmark_fasta(iterations, parameter),
         _ => panic!("unknown algorithm: {}", algorithm),
     }
 }

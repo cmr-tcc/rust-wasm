@@ -40,5 +40,11 @@
     "iterations": 200,
     "wasm_jit": 30,
     "parameter": 500
+  },
+  {
+    "algorithm": "fasta",
+    "iterations": 200,
+    "wasm_jit": 30,
+    "parameter": 250000
   }
 ]
