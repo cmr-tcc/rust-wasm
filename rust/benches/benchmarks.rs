@@ -24,17 +24,17 @@ fn benchmark_nsieve(iterations: usize, parameter: u64) {
     println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
 }
 
-fn benchmark_fannkuch(iterations: usize, parameter: u64) {
+fn benchmark_fannkuch_redux(iterations: usize, parameter: u64) {
     let mean_ms = rust_wasm::bench::measure(|| {
-        rust_wasm::fannkuch::run(parameter);
+        rust_wasm::fannkuch_redux::run(parameter);
     }, iterations);
 
     println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
 }
 
-fn benchmark_nbody(iterations: usize, parameter: u64) {
+fn benchmark_n_body(iterations: usize, parameter: u64) {
     let mean_ms = rust_wasm::bench::measure(|| {
-        rust_wasm::nbody::run(parameter);
+        rust_wasm::n_body::run(parameter);
     }, iterations);
 
     println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
@@ -61,8 +61,8 @@ fn main() {
         "fibonacci" => benchmark_fibonacci(iterations, parameter),
         "double" => benchmark_double(iterations, parameter),
         "nsieve" => benchmark_nsieve(iterations, parameter),
-        "fannkuch" => benchmark_fannkuch(iterations, parameter),
-        "nbody" => benchmark_nbody(iterations, parameter),
+        "fannkuch_redux" => benchmark_fannkuch_redux(iterations, parameter),
+        "n_body" => benchmark_n_body(iterations, parameter),
         _ => panic!("unknown algorithm: {}", algorithm),
     }
 }

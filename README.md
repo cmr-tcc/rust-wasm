@@ -23,8 +23,7 @@ chmod +x ./collect-stats.sh
 ## Adicionando um algoritmo
 
 1. Criar `rust/src/nome_do_algoritmo.rs` com a função `pub fn run(...)`
-2. Adicionar `pub mod nome_do_algoritmo;` em `rust/src/lib.rs`
-3. Adicionar o export em `rust/src/lib.rs` dentro de `mod wasm_exports`
-4. Adicionar a medição em `rust/benches/benchmarks.rs`
-5. Adicionar a chamada em `javascript/web/index.html`
-6. Configure os parâmetros no `config.json`
+2. Em `rust/src/lib.rs` adicione `pub mod nome_do_algoritmo;` e o export dentro de `mod wasm_exports`
+3. Adicionar a medição em `rust/benches/benchmarks.rs`
+4. Adicionar a chamada em `javascript/web/index.html`
+5. Configure os parâmetros no `config.json`

@@ -7,7 +7,7 @@
 <body>
 <script type="module">
 
-import init, { fibonacci, double, nsieve, fannkuch, nbody } from './rust_wasm.js';
+import init, { fibonacci, double, nsieve, fannkuch_redux, n_body } from './rust_wasm.js';
 
 function measure(fn, warmup, runs) {
     window.__benchmarkOutput = '';
@@ -56,14 +56,14 @@ async function main() {
                 mean_ms: measure(() => nsieve(parameter), wasmJit, iterations)
             };
             break;
-        case 'fannkuch':
+        case 'fannkuch_redux':
             result = {
-                mean_ms: measure(() => fannkuch(parameter), wasmJit, iterations)
+                mean_ms: measure(() => fannkuch_redux(parameter), wasmJit, iterations)
             }
             break;
-        case 'nbody':
+        case 'n_body':
             result = {
-                mean_ms: measure(() => nbody(parameter), wasmJit, iterations)
+                mean_ms: measure(() => n_body(parameter), wasmJit, iterations)
             }
             break;
         default:

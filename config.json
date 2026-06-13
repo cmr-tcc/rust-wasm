@@ -1,6 +1,6 @@
 [
   {
-    "algorithm": "nbody",
+    "algorithm": "n_body",
     "iterations": 200,
     "wasm_jit": 30,
     "parameter": 500000
@@ -24,7 +24,7 @@
     "parameter": 200000
   },
   {
-    "algorithm": "fannkuch",
+    "algorithm": "fannkuch_redux",
     "iterations": 200,
     "wasm_jit": 30,
     "parameter": 10
