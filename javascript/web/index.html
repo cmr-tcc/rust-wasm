@@ -8,7 +8,7 @@
 <pre id="output">Executando benchmarks...</pre>
 <script type="module">
 
-import init, { fibonacci, double, nsieve } from './rust_wasm.js';
+import init, { fibonacci, double, nsieve, fannkuch } from './rust_wasm.js';
 
 function measure(fn, warmup, runs) {
     // JIT warmup
@@ -51,6 +51,11 @@ async function main() {
             result = {
                 mean_ms: measure(() => nsieve(200000n), wasmJit, iterations)
             };
+            break;
+        case 'fannkuch':
+            result = {
+                mean_ms: measure(() => fannkuch(10n), wasmJit, iterations)
+            }
             break;
         default:
             throw new Error(`Algoritmo não encontrado: ${algorithm}`);

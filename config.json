@@ -13,5 +13,10 @@
     "algorithm": "nsieve",
     "iterations": 200,
     "wasm_jit": 30
+  },
+  {
+    "algorithm": "fannkuch",
+    "iterations": 200,
+    "wasm_jit": 30
   }
 ]

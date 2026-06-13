@@ -1,6 +1,7 @@
 pub mod fibonacci;
 pub mod double;
 pub mod nsieve;
+pub mod fannkuch;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub mod bench;
@@ -22,5 +23,10 @@ mod wasm_exports {
     #[wasm_bindgen]
     pub fn nsieve(n: u64) -> u64 {
         crate::nsieve::run(n)
+    }
+
+    #[wasm_bindgen]
+    pub fn fannkuch(n: u64) -> u64 {
+        crate::fannkuch::run(n)
     }
 }
