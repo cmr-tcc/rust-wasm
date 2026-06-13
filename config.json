@@ -1,5 +1,11 @@
 [
   {
+    "algorithm": "nbody",
+    "iterations": 200,
+    "wasm_jit": 30,
+    "parameter": 500000
+  },
+  {
     "algorithm": "fibonacci",
     "iterations": 200,
     "wasm_jit": 30,

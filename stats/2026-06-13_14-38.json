@@ -1,0 +1,50 @@
+[
+    {
+        "algorithm": "nbody",
+        "description": "",
+        "iterations": 200,
+        "wasm_jit": 30,
+        "runner": "Mateus",
+        "parameter": 500000,
+        "rust": {
+            "mean_ms": 15.232,
+            "resource_usage": [
+                {
+                    "timestamp": 1781372303,
+                    "memory": "83.03MiB",
+                    "cpu": "124.42%"
+                },
+                {
+                    "timestamp": 1781372305,
+                    "memory": "12.69MiB",
+                    "cpu": "122.00%"
+                },
+                {
+                    "timestamp": 1781372307,
+                    "memory": "12.29MiB",
+                    "cpu": "100.71%"
+                }
+            ]
+        },
+        "wasm": {
+            "mean_ms": 24.651,
+            "resource_usage": [
+                {
+                    "timestamp": 1781372312,
+                    "memory": "195.4MiB",
+                    "cpu": "160.65%"
+                },
+                {
+                    "timestamp": 1781372314,
+                    "memory": "196.2MiB",
+                    "cpu": "100.48%"
+                },
+                {
+                    "timestamp": 1781372316,
+                    "memory": "196.4MiB",
+                    "cpu": "101.82%"
+                }
+            ]
+        }
+    }
+]
