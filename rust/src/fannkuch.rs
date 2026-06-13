@@ -1,146 +1,179 @@
-use std::{cmp, mem};
-use std::thread;
+// The Computer Language Benchmarks Game
+// https://salsa.debian.org/benchmarksgame-team/benchmarksgame/
+//
+// Contributed by Cliff L. Biffle, translated from Jeremy Zerfas's C program.
+//
+// The C program was based on the Ada program by Jonathan Parker and Georg
+// Bauhaus which in turn was based on code by Dave Fladebo, Eckehard Berns,
+// Heiner Marxen, Hongwei Xi, and The Anh Tran and also the Java program by Oleg
+// Mazurov.
 
-fn rotate(x: &mut [i32]) {
-    let mut prev = x[0];
-    for place in x.iter_mut().rev() {
-        prev = mem::replace(place, prev)
-    }
-}
+extern crate rayon;
 
-fn next_permutation(perm: &mut [i32], count: &mut [i32]) {
-    for i in 1..perm.len() {
-        rotate(&mut perm[.. i + 1]);
-        let count_i = &mut count[i];
-        if *count_i >= i as i32 {
-            *count_i = 0;
-        } else {
-            *count_i += 1;
-            break
+use rayon::prelude::*;
+use std::mem::replace;
+
+// This value controls how many blocks the workload is broken up into (as long
+// as the value is less than or equal to the factorial of the argument to this
+// program) in order to allow the blocks to be processed in parallel if
+// possible. PREFERRED_NUMBER_OF_BLOCKS_TO_USE should be some number which
+// divides evenly into all factorials larger than it. It should also be around
+// 2-8 times the amount of threads you want to use in order to create enough
+// blocks to more evenly distribute the workload amongst the threads.
+const PREFERRED_NUMBER_OF_BLOCKS_TO_USE: usize = 12;
+
+// One greater than the maximum `n` value. Used to size stack arrays.
+const MAX_N: usize = 16;
+
+fn main(n: usize) {
+    // This assert eliminates several bounds checks.
+    assert!(n < MAX_N);
+
+    // Create and initialize factorial_lookup_table.
+    let factorial_lookup_table = {
+        let mut table: [usize; MAX_N] = [0; MAX_N];
+        table[0] = 1;
+        for i in 1..MAX_N {
+            table[i] = i * table[i - 1];
         }
-    }
-}
+        table
+    };
 
-#[derive(Clone, Copy)]
-struct P {
-    p: [i32; 16],
-}
+    // Determine the block_size to use. If n! is less than
+    // PREFERRED_NUMBER_OF_BLOCKS_TO_USE then just use a single block to prevent
+    // block_size from being set to 0. This also causes smaller values of n to
+    // be computed serially which is faster and uses less resources for small
+    // values of n.
+    let block_size =
+        1.max(factorial_lookup_table[n] / PREFERRED_NUMBER_OF_BLOCKS_TO_USE);
+    let block_count = factorial_lookup_table[n] / block_size;
 
-#[derive(Clone, Copy)]
-struct Perm {
-    cnt: [i32; 16],
-    fact: [u32; 16],
-    n: u32,
-    permcount: u32,
-    perm: P,
-}
+    // Iterate over each block.
+    let (checksum, max_flip_count) = (0..block_count)
+        .into_par_iter()
+        .map(|bn| {
+            let initial_permutation_index = bn * block_size;
 
-impl Perm {
-    fn new(n: u32) -> Perm {
-        let mut fact = [1; 16];
-        for i in 1 .. n as usize + 1 {
-            fact[i] = fact[i - 1] * i as u32;
-        }
-        Perm {
-            cnt: [0; 16],
-            fact: fact,
-            n: n,
-            permcount: 0,
-            perm: P { p: [0; 16 ] }
-        }
-    }
+            let mut count: [usize; MAX_N] = [0; MAX_N];
+            let mut current_permutation: [u8; MAX_N] =
+                [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
-    fn get(&mut self, mut idx: i32) -> P {
-        let mut pp = [0u8; 16];
-        self.permcount = idx as u32;
-        for (i, place) in self.perm.p.iter_mut().enumerate() {
-            *place = i as i32 + 1;
-        }
+            // Initialize count and current_permutation.
+            {
+                let mut temp_permutation: [u8; MAX_N] = [0; MAX_N];
+                let mut permutation_index = initial_permutation_index;
+                for i in (1..n).rev() {
+                    let f = factorial_lookup_table[i];
+                    let d = permutation_index / f;
 
-        for i in (1 .. self.n as usize).rev() {
-            let d = idx / self.fact[i] as i32;
-            self.cnt[i] = d;
-            idx %= self.fact[i] as i32;
-            for (place, val) in pp.iter_mut().zip(self.perm.p[..(i+1)].iter()) {
-                *place = (*val) as u8
+                    count[i] = d;
+
+                    // Rotate the permutation left by d places. This is faster
+                    // than using slice::rotate_left.
+                    temp_permutation[0..=i - d]
+                        .copy_from_slice(&current_permutation[d..=i]);
+                    temp_permutation[i - d + 1..=i]
+                        .copy_from_slice(&current_permutation[..d]);
+                    current_permutation = temp_permutation;
+
+                    permutation_index = permutation_index % f;
+                }
             }
 
-            let d = d as usize;
-            for j in 0 .. i + 1 {
-                self.perm.p[j] = if j + d <= i {pp[j + d]} else {pp[j+d-i-1]} as i32;
+            let mut max_flip_count = 0;
+            let mut checksum = 0;
+
+            // Iterate over each permutation in the block.
+            let last_permutation_index = initial_permutation_index + block_size;
+            for permutation_index in
+                initial_permutation_index..last_permutation_index
+            {
+                // If the first value in the current_permutation is not 1 (0)
+                // then we will need to do at least one flip for the
+                // current_permutation.
+                if current_permutation[0] > 0 {
+                    // Make a copy of current_permutation[] to work on.
+                    let mut temp_permutation = current_permutation;
+
+                    let mut flip_count: usize = 1;
+
+                    // Flip temp_permutation until the element at the
+                    // first_value index is 1 (0).
+                    let mut first_value = current_permutation[0] as usize & 0xF;
+                    while temp_permutation[first_value] > 0 {
+                        // Record the new_first_value and restore the old
+                        // first_value at its new flipped position.
+                        let new_first_value = replace(
+                            &mut temp_permutation[first_value],
+                            first_value as u8,
+                        );
+
+                        // If first_value is greater than 3 (2) then we are
+                        // flipping a series of four or more values so we will
+                        // also need to flip additional elements in the middle
+                        // of the temp_permutation.
+                        if first_value > 2 {
+                            for (low_index, high_index) in
+                                (1..first_value).zip((1..first_value).rev())
+                            {
+                                temp_permutation.swap(high_index, low_index);
+
+                                if low_index + 3 > high_index {
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Update first_value to new_first_value that we
+                        // recorded earlier.
+                        first_value = new_first_value as usize & 0xF;
+                        flip_count += 1;
+                    }
+
+                    // Update the checksum.
+                    if permutation_index % 2 == 0 {
+                        checksum += flip_count;
+                    } else {
+                        checksum -= flip_count;
+                    }
+
+                    // Update max_flip_count if necessary.
+                    max_flip_count = max_flip_count.max(flip_count);
+                }
+
+                // Generate the next permutation.
+                current_permutation.swap(0, 1);
+                let mut first_value = current_permutation[0];
+                for i in 1..MAX_N - 2 {
+                    count[i] += 1;
+                    if count[i] <= i {
+                        break;
+                    }
+                    count[i] = 0;
+
+                    let new_first_value = current_permutation[1];
+
+                    for j in 0..i + 1 {
+                        current_permutation[j] = current_permutation[j + 1];
+                    }
+
+                    current_permutation[i + 1] = first_value;
+                    first_value = new_first_value;
+                }
             }
-        }
+            (checksum, max_flip_count)
+        })
+        .reduce(
+            || (0, 0),
+            |(cs1, mf1), (cs2, mf2)| (cs1 + cs2, mf1.max(mf2)),
+        );
 
-        self.perm
-    }
-
-    fn count(&self) -> u32 { self.permcount }
-    fn max(&self) -> u32 { self.fact[self.n as usize] }
-
-    fn next(&mut self) -> P {
-        next_permutation(&mut self.perm.p, &mut self.cnt);
-        self.permcount += 1;
-
-        self.perm
-    }
-}
-
-
-fn reverse(tperm: &mut [i32], k: usize) {
-    tperm[..k].reverse()
-}
-
-fn work(mut perm: Perm, n: usize, max: usize) -> (i32, i32) {
-    let mut checksum = 0;
-    let mut maxflips = 0;
-
-    let mut p = perm.get(n as i32);
-
-    while perm.count() < max as u32 {
-        let mut flips = 0;
-
-        while p.p[0] != 1 {
-            let k = p.p[0] as usize;
-            reverse(&mut p.p, k);
-            flips += 1;
-        }
-
-        checksum += if perm.count() % 2 == 0 {flips} else {-flips};
-        maxflips = cmp::max(maxflips, flips);
-
-        p = perm.next();
-    }
-
-    (checksum, maxflips)
-}
-
-fn fannkuch(n: i32) -> (i32, i32) {
-    let perm = Perm::new(n as u32);
-
-    let n = 4;
-    let mut futures = vec![];
-    let k = perm.max() / n;
-
-    for j in (0..).map(|x| x * k).take_while(|&j| j < k * n) {
-        let max = cmp::min(j+k, perm.max());
-
-        futures.push(thread::spawn(move|| {
-            work(perm, j as usize, max as usize)
-        }))
-    }
-
-    let mut checksum = 0;
-    let mut maxflips = 0;
-    for fut in futures.into_iter() {
-        let (cs, mf) = fut.join().unwrap();
-        checksum += cs;
-        maxflips = cmp::max(maxflips, mf);
-    }
-    (checksum, maxflips)
+    // Output the results to stdout.
+    println!("{}", checksum);
+    println!("Pfannkuchen({}) = {}", n, max_flip_count);
 }
 
 pub fn run(n: u64) -> u64 {
-    let perm = Perm::new(n as u32);
-    let (checksum, maxflips) = work(perm, 0, perm.max() as usize);
-    1
+    main(n as usize);
+    0
 }
