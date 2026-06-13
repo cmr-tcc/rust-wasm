@@ -2,6 +2,8 @@
 
 set -e
 
+source "./script-utils.sh"
+
 CONFIG_FILE="config.json"
 
 if [[ ! -f "$CONFIG_FILE" ]]; then
@@ -21,8 +23,11 @@ jq -c '.[]' "$CONFIG_FILE" | while read -r item; do
     algorithm=$(echo "$item" | jq -r '.algorithm')
     iterations=$(echo "$item" | jq -r '.iterations')
     wasm_jit=$(echo "$item" | jq -r '.wasm_jit')
+    parameter=$(echo "$item" | jq -r '.parameter')
 
-    ./collect-stats.sh "$algorithm" "$iterations" "$wasm_jit"
+    echo_color "Running: $algorithm" --yellow
 
-    python3 format-stats.py "$algorithm" "$iterations" "$wasm_jit" "$OUTPUT_FILE" "$RUNNER"
+    ./collect-stats.sh "$algorithm" "$iterations" "$wasm_jit" "$parameter"
+
+    python3 format-stats.py "$algorithm" "$iterations" "$wasm_jit" "$parameter" "$OUTPUT_FILE" "$RUNNER"
 done

@@ -5,21 +5,24 @@
     <title>rust-wasm benchmark</title>
 </head>
 <body>
-<pre id="output">Executando benchmarks...</pre>
 <script type="module">
 
 import init, { fibonacci, double, nsieve, fannkuch } from './rust_wasm.js';
 
 function measure(fn, warmup, runs) {
+    window.__benchmarkOutput = '';
+
     // JIT warmup
     for (let i = 0; i < warmup; i++) {
-        fn();
+        const output = fn();
+        window.__benchmarkOutput += `Output: ${output}\n`;
     }
 
     const start = performance.now();
 
     for (let i = 0; i < runs; i++) {
-        fn();
+        const output = fn();
+        window.__benchmarkOutput += `Output: ${output}\n`;
     }
 
     const totalMs = performance.now() - start;
@@ -34,27 +37,28 @@ async function main() {
     const algorithm = params.get('algorithm');
     const iterations = Number(params.get('iterations'))
     const wasmJit = Number(params.get('wasmJit'));
+    const parameter = BigInt(params.get('parameter'));
 
     let result = {};
     switch (algorithm) {
         case 'fibonacci':
             result = {
-                mean_ms: measure(() => fibonacci(40n), wasmJit, iterations)
+                mean_ms: measure(() => fibonacci(parameter), wasmJit, iterations)
             };
             break;
         case 'double':
             result = {
-                mean_ms: measure(() => double(10n), wasmJit, iterations)
+                mean_ms: measure(() => double(parameter), wasmJit, iterations)
             };
             break;
         case 'nsieve':
             result = {
-                mean_ms: measure(() => nsieve(200000n), wasmJit, iterations)
+                mean_ms: measure(() => nsieve(parameter), wasmJit, iterations)
             };
             break;
         case 'fannkuch':
             result = {
-                mean_ms: measure(() => fannkuch(10n), wasmJit, iterations)
+                mean_ms: measure(() => fannkuch(parameter), wasmJit, iterations)
             }
             break;
         default:
@@ -62,12 +66,10 @@ async function main() {
     }
 
     window.__benchmarkResult = result;
-    document.getElementById('output').textContent = JSON.stringify(result, null, 2);
 }
 
 main().catch((error) => {
     window.__benchmarkError = error.message;
-    document.getElementById('output').textContent = 'Erro: ' + error.message;
 });
 </script>
 </body>

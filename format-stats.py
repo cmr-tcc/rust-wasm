@@ -7,8 +7,9 @@ from pathlib import Path
 algorithm = sys.argv[1]
 iterations = int(sys.argv[2])
 wasm_jit = int(sys.argv[3])
-output_file = sys.argv[4]
-runner = sys.argv[5]
+parameter = int(sys.argv[4])
+output_file = sys.argv[5]
+runner = sys.argv[6]
 
 def load_csv(path):
     result = []
@@ -42,6 +43,7 @@ result = {
     "iterations": iterations,
     "wasm_jit": wasm_jit,
     "runner": runner,
+    "parameter": parameter,
     "rust": {
         "mean_ms": extract_mean_ms("stats/rust-output.txt"),
         "resource_usage": load_csv("stats/rust-stats.csv")

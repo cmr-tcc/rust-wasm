@@ -2,21 +2,25 @@
   {
     "algorithm": "fibonacci",
     "iterations": 200,
-    "wasm_jit": 30
+    "wasm_jit": 30,
+    "parameter": 40
   },
   {
     "algorithm": "double",
     "iterations": 200,
-    "wasm_jit": 30
+    "wasm_jit": 30,
+    "parameter": 10
   },
   {
     "algorithm": "nsieve",
     "iterations": 200,
-    "wasm_jit": 30
+    "wasm_jit": 30,
+    "parameter": 200000
   },
   {
     "algorithm": "fannkuch",
     "iterations": 200,
-    "wasm_jit": 30
+    "wasm_jit": 30,
+    "parameter": 10
   }
 ]

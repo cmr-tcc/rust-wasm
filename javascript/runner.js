@@ -47,9 +47,10 @@ const page = await browser.newPage();
 const algorithm = process.argv[2];
 const iterations = process.argv[3];
 const wasmJit = process.argv[4];
+const parameter = process.argv[5];
 
 await page.goto(
-    `http://localhost:${port}?algorithm=${algorithm}&iterations=${iterations}&wasmJit=${wasmJit}`
+    `http://localhost:${port}?algorithm=${algorithm}&iterations=${iterations}&wasmJit=${wasmJit}&parameter=${parameter}`,
 );
 
 await page.waitForFunction(
@@ -61,7 +62,13 @@ const results = await page.evaluate(
     () => window.__benchmarkResult ?? { error: window.__benchmarkError }
 );
 
+const output = await page.evaluate(
+    () => window.__benchmarkOutput
+);
+
 console.log(JSON.stringify(results, null, 2));
+
+console.log(output);
 
 await browser.close();
 server.close();

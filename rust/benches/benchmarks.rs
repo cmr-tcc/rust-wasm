@@ -1,32 +1,32 @@
 use std::env;
 
-fn benchmark_fibonacci(iterations: usize) {
+fn benchmark_fibonacci(iterations: usize, parameter: u64) {
     let mean_ms = rust_wasm::bench::measure(|| {
-        rust_wasm::fibonacci::run(40);
+        rust_wasm::fibonacci::run(parameter);
     }, iterations);
 
     println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
 }
 
-fn benchmark_double(iterations: usize) {
+fn benchmark_double(iterations: usize, parameter: u64) {
     let mean_ms = rust_wasm::bench::measure(|| {
-        rust_wasm::double::run(40);
+        rust_wasm::double::run(parameter);
     }, iterations);
 
     println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
 }
 
-fn benchmark_nsieve(iterations: usize) {
+fn benchmark_nsieve(iterations: usize, parameter: u64) {
     let mean_ms = rust_wasm::bench::measure(|| {
-        rust_wasm::nsieve::run(200_000);
+        rust_wasm::nsieve::run(parameter);
     }, iterations);
 
     println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
 }
 
-fn benchmark_fannkuch(iterations: usize) {
+fn benchmark_fannkuch(iterations: usize, parameter: u64) {
     let mean_ms = rust_wasm::bench::measure(|| {
-        rust_wasm::fannkuch::run(10);
+        rust_wasm::fannkuch::run(parameter);
     }, iterations);
 
     println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
@@ -43,11 +43,17 @@ fn main() {
         .parse()
         .expect("iterations must be a number");
 
+    let parameter = env::args()
+        .nth(3)
+        .expect("missing parameter argument")
+        .parse()
+        .expect("parameter must be a number");
+
     match algorithm.as_str() {
-        "fibonacci" => benchmark_fibonacci(iterations),
-        "double" => benchmark_double(iterations),
-        "nsieve" => benchmark_nsieve(iterations),
-        "fannkuch" => benchmark_fannkuch(iterations),
+        "fibonacci" => benchmark_fibonacci(iterations, parameter),
+        "double" => benchmark_double(iterations, parameter),
+        "nsieve" => benchmark_nsieve(iterations, parameter),
+        "fannkuch" => benchmark_fannkuch(iterations, parameter),
         _ => panic!("unknown algorithm: {}", algorithm),
     }
 }
