@@ -1,4 +1,6 @@
 use std::env;
+use std::thread;
+use std::time::Duration;
 
 fn benchmark_fibonacci(iterations: usize, parameter: u64) {
     let mean_ms = rust_wasm::bench::measure(|| {
@@ -65,6 +67,8 @@ fn main() {
         .parse()
         .expect("parameter must be a number");
 
+    thread::sleep(Duration::from_secs(10)); // 10 seconds in idle to measure resource usage in stand-by
+
     match algorithm.as_str() {
         "fibonacci" => benchmark_fibonacci(iterations, parameter),
         "fannkuch_redux" => benchmark_fannkuch_redux(iterations, parameter),
@@ -74,4 +78,6 @@ fn main() {
         "fasta" => benchmark_fasta(iterations, parameter),
         _ => panic!("unknown algorithm: {}", algorithm),
     }
+
+    thread::sleep(Duration::from_secs(10)); // 10 seconds in idle to measure resource usage in stand-by
 }

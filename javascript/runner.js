@@ -40,7 +40,8 @@ server.listen(port);
 
 const browser = await puppeteer.launch({ 
     headless: true, 
-    args: ['--no-sandbox', '--disable-setuid-sandbox'] 
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    protocolTimeout: 600_000
 });
 const page = await browser.newPage();
 
@@ -55,7 +56,7 @@ await page.goto(
 
 await page.waitForFunction(
     () => window.__benchmarkResult !== undefined || window.__benchmarkError !== undefined,
-    { timeout: 300_000 }
+    { timeout: 600_000 }
 );
 
 const results = await page.evaluate(

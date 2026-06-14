@@ -1,50 +1,32 @@
 [
   {
-    "algorithm": "fibonacci",
-    "iterations": 200,
-    "wasm_jit": 30,
-    "parameter": 40
-  },
-  {
-    "algorithm": "double",
-    "iterations": 200,
-    "wasm_jit": 30,
-    "parameter": 10
-  },
-  {
-    "algorithm": "nsieve",
-    "iterations": 200,
-    "wasm_jit": 30,
-    "parameter": 200000
-  },
-  {
     "algorithm": "fannkuch_redux",
-    "iterations": 200,
-    "wasm_jit": 30,
-    "parameter": 10
+    "iterations": 10,
+    "wasm_jit": 0,
+    "parameter": 12
   },
   {
     "algorithm": "n_body",
-    "iterations": 200,
-    "wasm_jit": 30,
-    "parameter": 500000
+    "iterations": 10,
+    "wasm_jit": 0,
+    "parameter": 50000000
   },
   {
     "algorithm": "spectral_norm",
-    "iterations": 200,
-    "wasm_jit": 30,
-    "parameter": 1500
+    "iterations": 10,
+    "wasm_jit": 0,
+    "parameter": 5500
   },
   {
     "algorithm": "mandelbrot",
-    "iterations": 200,
-    "wasm_jit": 30,
-    "parameter": 500
+    "iterations": 10,
+    "wasm_jit": 0,
+    "parameter": 16000
   },
   {
     "algorithm": "fasta",
-    "iterations": 200,
-    "wasm_jit": 30,
-    "parameter": 250000
+    "iterations": 10,
+    "wasm_jit": 0,
+    "parameter": 25000000
   }
 ]

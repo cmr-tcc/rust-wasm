@@ -40,6 +40,9 @@ async function main() {
     const parameter = BigInt(params.get('parameter'));
 
     let result = {};
+
+    await new Promise(resolve => setTimeout(resolve, 10_000)); // 10 seconds in idle to measure resource usage in stand-by
+
     switch (algorithm) {
         case 'fibonacci':
             result = {
@@ -74,6 +77,8 @@ async function main() {
         default:
             throw new Error(`Algoritmo não encontrado: ${algorithm}`);
     }
+
+    await new Promise(resolve => setTimeout(resolve, 10_000)); // 10 seconds in idle to measure resource usage in stand-by
 
     window.__benchmarkResult = result;
 }
