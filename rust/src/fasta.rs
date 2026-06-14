@@ -6,7 +6,7 @@
 // contributed by Matt Brubeck
 
 use std::env::args;
-use std::io::{self, Write, BufWriter};
+use std::io::{self, Write, BufWriter, sink};
 
 const LINE_LENGTH: usize = 60;
 const BLOCK_SIZE: usize = LINE_LENGTH * 1024;
@@ -67,7 +67,7 @@ fn write<W: Write>(block: &[u8], output: &mut W) -> io::Result<()> {
 }
 
 fn run(n: usize) -> io::Result<()> {
-    let mut out = BufWriter::new(io::stdout());
+    let mut out = BufWriter::new(sink());
 
     // Generate a DNA sequence by copying from the given sequence.
 
