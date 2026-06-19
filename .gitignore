@@ -7,3 +7,5 @@ stats/*.csv
 stats/*.txt
 .env
 venv/
+.venv/
+__pycache__/

@@ -29,5 +29,5 @@ jq -c '.[]' "$CONFIG_FILE" | while read -r item; do
 
     ./collect-stats.sh "$algorithm" "$iterations" "$wasm_jit" "$parameter"
 
-    python3 format-stats.py "$algorithm" "$iterations" "$wasm_jit" "$parameter" "$OUTPUT_FILE" "$RUNNER"
+    python3 scripts/format_stats.py "$algorithm" "$iterations" "$wasm_jit" "$parameter" "$OUTPUT_FILE" "$RUNNER"
 done
