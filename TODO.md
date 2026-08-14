@@ -7,3 +7,5 @@
 - Avaliar outras métricas como percentile e mediana ao invés de média no tempo de execução
 
 - No Wasm a performance é feita no lado do JavaScript, o que inclui a sobrecarga de passar o controle para o Rust. Testar medir na função `run` do algoritmo e o retorno ser o tempo gasto
+
+- Tentar limitar a 1 CPU no container para ver se vai passar de 100% de uso de CPU
