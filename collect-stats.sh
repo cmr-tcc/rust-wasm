@@ -18,46 +18,17 @@ docker compose up -d
 
 CONTAINER_ID=$(docker compose ps -q bench)
 
-collect_stats() {
-  FILE=$1
-
-  # Define the CSV header
-  echo "timestamp,cpu,memory" > "$FILE"
-
-  # (): starts a sub-shell
-  # >>: redirect the output to a file
-  # &: run in background
-  (
-    while true; do
-      DOCKER_STATS=$(
-        docker stats "$CONTAINER_ID" --no-stream --format "{{.CPUPerc}},{{.MemUsage}}"
-      )
-
-      TIMESTAMP=$(date +%s)
-      CPU=$(echo "$DOCKER_STATS" | cut -d',' -f1)
-      MEMORY=$(echo "$DOCKER_STATS" | cut -d',' -f2 | cut -d'/' -f1 | xargs)
-
-      echo "$TIMESTAMP,$CPU,$MEMORY"
-
-      sleep 1
-    done
-  ) >>"$FILE" &
-
-  # Return the PID of the background process
-  echo $!
-}
-
 echo_color "Executing Rust" --yellow
 
-RUST_STATS_PID=$(collect_stats stats/rust-stats.csv)
-
-echo_color "Rust stats PID: $RUST_STATS_PID" --red
+docker exec -d "$CONTAINER_ID" /app/monitor.sh
 
 RUST_OUTPUT=$(
   docker exec "$CONTAINER_ID" sh -c "cd /app/rust && RAYON_NUM_THREADS=1 cargo bench --bench benchmarks -- $ALGORITHM $ITERATIONS $PARAMETER"
 )
 
-kill "$RUST_STATS_PID"
+docker exec "$CONTAINER_ID" kill "$(docker exec "$CONTAINER_ID" cat /tmp/resource_monitor.pid)"
+
+docker cp "$CONTAINER_ID":/tmp/resource_usage.csv ./stats/rust-stats.csv
 
 echo "$RUST_OUTPUT" >stats/rust-output.txt
 
@@ -67,15 +38,15 @@ sleep 3
 
 echo_color "Executing Wasm" --yellow
 
-WASM_STATS_PID=$(collect_stats stats/wasm-stats.csv)
-
-echo_color "Wasm stats PID: $WASM_STATS_PID" --red
+docker exec -d "$CONTAINER_ID" /app/monitor.sh
 
 WASM_OUTPUT=$(
   docker exec "$CONTAINER_ID" sh -c "cd /app/javascript && npm run bench -- ${ALGORITHM} ${ITERATIONS} ${WASM_JIT} ${PARAMETER}"
 )
 
-kill "$WASM_STATS_PID"
+docker exec "$CONTAINER_ID" kill "$(docker exec "$CONTAINER_ID" cat /tmp/resource_monitor.pid)"
+
+docker cp "$CONTAINER_ID":/tmp/resource_usage.csv ./stats/wasm-stats.csv
 
 echo "$WASM_OUTPUT" >stats/wasm-output.txt
 

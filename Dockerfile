@@ -36,7 +36,10 @@ RUN wasm-pack build --target web --out-dir /app/javascript/web
 WORKDIR /app
 
 # Copy the rest of the project files
-COPY . .
+COPY javascript/ ./javascript/
+
+COPY monitor.sh ./
+RUN chmod +x ./monitor.sh
 
 # Wait for commands
 CMD ["sleep", "infinity"]
