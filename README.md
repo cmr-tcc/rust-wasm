@@ -20,6 +20,15 @@ chmod +x ./collect-stats.sh
 ./stats.sh
 ```
 
+## Scripts Python
+
+```bash
+source venv/bin/activate
+pip install -r requirements.txt
+python3 ./scripts/generate_chart.py ./stats/2026-08-16_16-30.json
+python3 ./scripts/analyze_stats.py ./stats/2026-08-16_16-30.json
+```
+
 ## Adicionando um algoritmo
 
 1. Criar `rust/src/nome_do_algoritmo.rs` com a função `pub fn run(...)`

@@ -10,7 +10,7 @@ WASM_JIT=$3
 PARAMETER=$4
 
 if [ -z "$ALGORITHM" ] || [ -z "$ITERATIONS" ] || [ -z "$WASM_JIT" ] || [ -z "$PARAMETER" ]; then
-  echo "Usage: ./collect-stats.sh <algorithm> <iterations> <wasm_jit> <parameter>"
+  echo_color "Usage: ./collect-stats.sh <algorithm> <iterations> <wasm_jit> <parameter>" --red
   exit 1
 fi
 
@@ -21,8 +21,12 @@ CONTAINER_ID=$(docker compose ps -q bench)
 collect_stats() {
   FILE=$1
 
-  echo "timestamp,cpu,memory" >"$FILE"
+  # Define the CSV header
+  echo "timestamp,cpu,memory" > "$FILE"
 
+  # (): starts a sub-shell
+  # >>: redirect the output to a file
+  # &: run in background
   (
     while true; do
       DOCKER_STATS=$(
@@ -39,6 +43,7 @@ collect_stats() {
     done
   ) >>"$FILE" &
 
+  # Return the PID of the background process
   echo $!
 }
 

@@ -7,7 +7,7 @@ source "./script-utils.sh"
 CONFIG_FILE="config.json"
 
 if [[ ! -f "$CONFIG_FILE" ]]; then
-    echo "Error: $CONFIG_FILE not found"
+    echo_color "Error: $CONFIG_FILE not found" --red
     exit 1
 fi
 
