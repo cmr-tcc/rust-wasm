@@ -32,6 +32,7 @@ COPY rust/ ./rust/
 
 # Build the Rust
 WORKDIR /app/rust
+RUN cargo bench --bench benchmarks --no-run
 RUN wasm-pack build --target web --out-dir /app/javascript/web
 WORKDIR /app
 
