@@ -47,11 +47,11 @@ const page = await browser.newPage();
 
 const algorithm = process.argv[2];
 const iterations = process.argv[3];
-const wasmJit = process.argv[4];
+const warmUp = process.argv[4];
 const parameter = process.argv[5];
 
 await page.goto(
-    `http://localhost:${port}?algorithm=${algorithm}&iterations=${iterations}&wasmJit=${wasmJit}&parameter=${parameter}`,
+    `http://localhost:${port}?algorithm=${algorithm}&iterations=${iterations}&warm_up=${warmUp}&parameter=${parameter}`,
 );
 
 await page.waitForFunction(

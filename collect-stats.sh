@@ -23,7 +23,7 @@ echo_color "Executing Rust" --yellow
 docker exec -d "$CONTAINER_ID" /app/monitor.sh
 
 RUST_OUTPUT=$(
-  docker exec "$CONTAINER_ID" sh -c "cd /app/rust && RAYON_NUM_THREADS=1 cargo bench --bench benchmarks -- $ALGORITHM $ITERATIONS $PARAMETER"
+  docker exec "$CONTAINER_ID" sh -c "cd /app/rust && RAYON_NUM_THREADS=1 cargo bench --bench benchmarks -- $ALGORITHM $ITERATIONS $WARM_UP $PARAMETER"
 )
 
 docker exec "$CONTAINER_ID" kill "$(docker exec "$CONTAINER_ID" cat /tmp/resource_monitor.pid)"

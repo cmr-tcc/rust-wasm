@@ -2,7 +2,11 @@ use std::env;
 use std::thread;
 use std::time::Duration;
 
-fn benchmark_fibonacci(iterations: usize, parameter: u64) {
+fn benchmark_fibonacci(iterations: usize, parameter: u64, warm_up: usize) {
+    for _ in 0..warm_up {
+        rust_wasm::fibonacci::run(parameter);
+    }
+
     let mean_ms = rust_wasm::bench::measure(|| {
         rust_wasm::fibonacci::run(parameter);
     }, iterations);
@@ -10,7 +14,11 @@ fn benchmark_fibonacci(iterations: usize, parameter: u64) {
     println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
 }
 
-fn benchmark_fannkuch_redux(iterations: usize, parameter: u64) {
+fn benchmark_fannkuch_redux(iterations: usize, parameter: u64, warm_up: usize) {
+    for _ in 0..warm_up {
+        rust_wasm::fannkuch_redux::run(parameter);
+    }
+
     let mean_ms = rust_wasm::bench::measure(|| {
         rust_wasm::fannkuch_redux::run(parameter);
     }, iterations);
@@ -18,7 +26,11 @@ fn benchmark_fannkuch_redux(iterations: usize, parameter: u64) {
     println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
 }
 
-fn benchmark_n_body(iterations: usize, parameter: u64) {
+fn benchmark_n_body(iterations: usize, parameter: u64, warm_up: usize) {
+    for _ in 0..warm_up {
+        rust_wasm::n_body::run(parameter);
+    }
+
     let mean_ms = rust_wasm::bench::measure(|| {
         rust_wasm::n_body::run(parameter);
     }, iterations);
@@ -26,7 +38,11 @@ fn benchmark_n_body(iterations: usize, parameter: u64) {
     println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
 }
 
-fn benchmark_spectral_norm(iterations: usize, parameter: u64) {
+fn benchmark_spectral_norm(iterations: usize, parameter: u64, warm_up: usize) {
+    for _ in 0..warm_up {
+        rust_wasm::spectral_norm::main(parameter);
+    }
+
     let mean_ms = rust_wasm::bench::measure(|| {
         rust_wasm::spectral_norm::main(parameter);
     }, iterations);
@@ -34,7 +50,11 @@ fn benchmark_spectral_norm(iterations: usize, parameter: u64) {
     println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
 }
 
-fn benchmark_mandelbrot(iterations: usize, parameter: u64) {
+fn benchmark_mandelbrot(iterations: usize, parameter: u64, warm_up: usize) {
+    for _ in 0..warm_up {
+        rust_wasm::mandelbrot::main(parameter);
+    }
+
     let mean_ms = rust_wasm::bench::measure(|| {
         rust_wasm::mandelbrot::main(parameter);
     }, iterations);
@@ -42,7 +62,11 @@ fn benchmark_mandelbrot(iterations: usize, parameter: u64) {
     println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
 }
 
-fn benchmark_fasta(iterations: usize, parameter: u64) {
+fn benchmark_fasta(iterations: usize, parameter: u64, warm_up: usize) {
+    for _ in 0..warm_up {
+        rust_wasm::fasta::main(parameter);
+    }
+
     let mean_ms = rust_wasm::bench::measure(|| {
         rust_wasm::fasta::main(parameter);
     }, iterations);
@@ -61,8 +85,14 @@ fn main() {
         .parse()
         .expect("iterations must be a number");
 
-    let parameter = env::args()
+    let warm_up = env::args()
         .nth(3)
+        .expect("missing warm-up argument")
+        .parse()
+        .expect("warm-up must be a number");
+
+    let parameter = env::args()
+        .nth(4)
         .expect("missing parameter argument")
         .parse()
         .expect("parameter must be a number");
@@ -70,12 +100,12 @@ fn main() {
     thread::sleep(Duration::from_secs(10)); // 10 seconds in idle to measure resource usage in stand-by
 
     match algorithm.as_str() {
-        "fibonacci" => benchmark_fibonacci(iterations, parameter),
-        "fannkuch_redux" => benchmark_fannkuch_redux(iterations, parameter),
-        "n_body" => benchmark_n_body(iterations, parameter),
-        "spectral_norm" => benchmark_spectral_norm(iterations, parameter),
-        "mandelbrot" => benchmark_mandelbrot(iterations, parameter),
-        "fasta" => benchmark_fasta(iterations, parameter),
+        "fibonacci" => benchmark_fibonacci(iterations, parameter, warm_up),
+        "fannkuch_redux" => benchmark_fannkuch_redux(iterations, parameter, warm_up),
+        "n_body" => benchmark_n_body(iterations, parameter, warm_up),
+        "spectral_norm" => benchmark_spectral_norm(iterations, parameter, warm_up),
+        "mandelbrot" => benchmark_mandelbrot(iterations, parameter, warm_up),
+        "fasta" => benchmark_fasta(iterations, parameter, warm_up),
         _ => panic!("unknown algorithm: {}", algorithm),
     }
 

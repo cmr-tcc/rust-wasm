@@ -36,7 +36,7 @@ async function main() {
     const params = new URLSearchParams(window.location.search);
     const algorithm = params.get('algorithm');
     const iterations = Number(params.get('iterations'))
-    const warmUp = Number(params.get('warmUp'));
+    const warmUp = Number(params.get('warm_up'));
     const parameter = BigInt(params.get('parameter'));
 
     let result = {};
