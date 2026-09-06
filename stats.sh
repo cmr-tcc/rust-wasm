@@ -22,12 +22,12 @@ docker compose build
 jq -c '.[]' "$CONFIG_FILE" | while read -r item; do
     algorithm=$(echo "$item" | jq -r '.algorithm')
     iterations=$(echo "$item" | jq -r '.iterations')
-    wasm_jit=$(echo "$item" | jq -r '.wasm_jit')
+    warm_up=$(echo "$item" | jq -r '.warm_up')
     parameter=$(echo "$item" | jq -r '.parameter')
 
     echo_color "Running: $algorithm" --yellow
 
-    ./collect-stats.sh "$algorithm" "$iterations" "$wasm_jit" "$parameter"
+    ./collect-stats.sh "$algorithm" "$iterations" "$warm_up" "$parameter"
 
-    python3 scripts/format_stats.py "$algorithm" "$iterations" "$wasm_jit" "$parameter" "$OUTPUT_FILE" "$RUNNER"
+    python3 scripts/format_stats.py "$algorithm" "$iterations" "$warm_up" "$parameter" "$OUTPUT_FILE" "$RUNNER"
 done

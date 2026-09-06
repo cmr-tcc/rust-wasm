@@ -6,7 +6,7 @@ from pathlib import Path
 
 algorithm = sys.argv[1]
 iterations = int(sys.argv[2])
-wasm_jit = int(sys.argv[3])
+warm_up = int(sys.argv[3])
 parameter = int(sys.argv[4])
 output_file = sys.argv[5]
 runner = sys.argv[6]
@@ -41,7 +41,7 @@ result = {
     "algorithm": algorithm,
     "description": "",
     "iterations": iterations,
-    "wasm_jit": wasm_jit,
+    "warm_up": warm_up,
     "runner": runner,
     "parameter": parameter,
     "rust": {

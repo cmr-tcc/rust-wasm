@@ -3,7 +3,7 @@
         "algorithm": "fannkuch_redux",
         "description": "",
         "iterations": 10,
-        "wasm_jit": 0,
+        "warm_up": 0,
         "runner": "Mateus",
         "parameter": 12,
         "rust": {
@@ -1101,7 +1101,7 @@
         "algorithm": "n_body",
         "description": "",
         "iterations": 10,
-        "wasm_jit": 0,
+        "warm_up": 0,
         "runner": "Mateus",
         "parameter": 50000000,
         "rust": {
@@ -1329,7 +1329,7 @@
         "algorithm": "spectral_norm",
         "description": "",
         "iterations": 10,
-        "wasm_jit": 0,
+        "warm_up": 0,
         "runner": "Mateus",
         "parameter": 5500,
         "rust": {
@@ -1512,7 +1512,7 @@
         "algorithm": "mandelbrot",
         "description": "",
         "iterations": 10,
-        "wasm_jit": 0,
+        "warm_up": 0,
         "runner": "Mateus",
         "parameter": 16000,
         "rust": {
@@ -1865,7 +1865,7 @@
         "algorithm": "fasta",
         "description": "",
         "iterations": 10,
-        "wasm_jit": 0,
+        "warm_up": 0,
         "runner": "Mateus",
         "parameter": 25000000,
         "rust": {

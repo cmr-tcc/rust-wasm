@@ -6,11 +6,11 @@ source "./script-utils.sh"
 
 ALGORITHM=$1
 ITERATIONS=$2
-WASM_JIT=$3
+WARM_UP=$3
 PARAMETER=$4
 
-if [ -z "$ALGORITHM" ] || [ -z "$ITERATIONS" ] || [ -z "$WASM_JIT" ] || [ -z "$PARAMETER" ]; then
-  echo_color "Usage: ./collect-stats.sh <algorithm> <iterations> <wasm_jit> <parameter>" --red
+if [ -z "$ALGORITHM" ] || [ -z "$ITERATIONS" ] || [ -z "$WARM_UP" ] || [ -z "$PARAMETER" ]; then
+  echo_color "Usage: ./collect-stats.sh <algorithm> <iterations> <warm_up> <parameter>" --red
   exit 1
 fi
 
@@ -41,7 +41,7 @@ echo_color "Executing Wasm" --yellow
 docker exec -d "$CONTAINER_ID" /app/monitor.sh
 
 WASM_OUTPUT=$(
-  docker exec "$CONTAINER_ID" sh -c "cd /app/javascript && npm run bench -- ${ALGORITHM} ${ITERATIONS} ${WASM_JIT} ${PARAMETER}"
+  docker exec "$CONTAINER_ID" sh -c "cd /app/javascript && npm run bench -- ${ALGORITHM} ${ITERATIONS} ${WARM_UP} ${PARAMETER}"
 )
 
 docker exec "$CONTAINER_ID" kill "$(docker exec "$CONTAINER_ID" cat /tmp/resource_monitor.pid)"
