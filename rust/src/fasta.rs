@@ -5,7 +5,6 @@
 // contributed by TeXitoi
 // contributed by Matt Brubeck
 
-use std::env::args;
 use std::io::{self, Write, BufWriter, sink};
 
 const LINE_LENGTH: usize = 60;

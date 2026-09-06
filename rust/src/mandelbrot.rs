@@ -10,8 +10,6 @@
 extern crate rayon;
 
 use rayon::prelude::*;
-use std::env;
-use std::io::{self, Write};
 use std::ops::{Add, Mul, Sub, Index, IndexMut};
 
 const VLEN: usize = 8;
