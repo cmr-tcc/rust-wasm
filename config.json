@@ -2,31 +2,31 @@
   {
     "algorithm": "fannkuch_redux",
     "iterations": 10,
-    "warm_up": 0,
+    "warm_up": 1,
     "parameter": 12
   },
   {
     "algorithm": "n_body",
     "iterations": 10,
-    "warm_up": 0,
+    "warm_up": 1,
     "parameter": 50000000
   },
   {
     "algorithm": "spectral_norm",
     "iterations": 10,
-    "warm_up": 0,
+    "warm_up": 1,
     "parameter": 5500
   },
   {
     "algorithm": "mandelbrot",
     "iterations": 10,
-    "warm_up": 0,
+    "warm_up": 1,
     "parameter": 16000
   },
   {
     "algorithm": "fasta",
     "iterations": 10,
-    "warm_up": 0,
+    "warm_up": 1,
     "parameter": 25000000
   }
 ]
