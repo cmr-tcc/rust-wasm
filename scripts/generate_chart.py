@@ -17,8 +17,16 @@ with open(json_file, "r") as f:
     data = json.load(f)
 
 file_stem = Path(json_file).stem
-output_dir = Path(f"charts/{file_stem}")
-output_dir.mkdir(exist_ok=True)
+output_dir = Path(f"charts/{file_stem}/total/")
+output_dir.mkdir(parents=True, exist_ok=True)
+
+
+def filter_total_usage(resource_usage):
+    return [
+        sample
+        for sample in resource_usage
+        if sample.get("pid#process_name") == "TOTAL#total"
+    ]
 
 # =====================================================
 # Execution Time Comparison
@@ -51,8 +59,8 @@ plt.close()
 
 for entry in data:
     algorithm = entry["algorithm"]
-    rust_usage = entry["rust"]["resource_usage"]
-    wasm_usage = entry["wasm"]["resource_usage"]
+    rust_usage = filter_total_usage(entry["rust"]["resource_usage"])
+    wasm_usage = filter_total_usage(entry["wasm"]["resource_usage"])
 
     if not rust_usage and not wasm_usage:
         continue

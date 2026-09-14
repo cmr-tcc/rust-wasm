@@ -1,42 +1,71 @@
 #!/bin/bash
 
 OUTPUT="/tmp/resource_usage.csv"
-PIDFILE="/tmp/resource_monitor.pid"
+PID_FILE="/tmp/resource_monitor.pid"
 
-echo "timestamp,cpu,memory" > "$OUTPUT"
+get_total_cpu() {
+    awk '$1 == "usage_usec" {print $2}' /sys/fs/cgroup/cpu.stat
+}
 
-echo $$ > "$PIDFILE"
+echo "timestamp,pid,name,cpu,memory" > "$OUTPUT"
+echo $$ > "$PID_FILE"
 
-previous_cpu=$(awk '$1 == "usage_usec" {print $2}' /sys/fs/cgroup/cpu.stat)
+CLOCKS_PER_SECOND=$(getconf CLK_TCK)
+declare -A previous_cpu
+
 previous_time=$(date +%s%N)
+previous_total_cpu=$(get_total_cpu)
 
 while true; do
     sleep 1
 
-    # CPU
-    current_cpu=$(awk '$1 == "usage_usec" {print $2}' /sys/fs/cgroup/cpu.stat)
     current_time=$(date +%s%N)
-
-    cpu_delta=$((current_cpu - previous_cpu))
     time_delta=$((current_time - previous_time))
+    current_total_cpu=$(get_total_cpu)
+    cpu_total_delta=$((current_total_cpu - previous_total_cpu))
+    cpu_total=$(awk -v d="$cpu_total_delta" -v t="$time_delta" 'BEGIN { printf "%.2f", (d * 100000) / t }')
 
-    cpu=$(awk \
-        -v cpu="$cpu_delta" \
-        -v time="$time_delta" \
-        'BEGIN { printf "%.2f", (cpu * 100000) / time }')
+    current_memory=$(cat /sys/fs/cgroup/memory.current)
+    current_inactive_memory=$(awk '$1 == "inactive_file" {print $2}' /sys/fs/cgroup/memory.stat)
+    memory_kilobytes=$(( (current_memory - current_inactive_memory) / 1024 ))
 
-    # Memory
-    memory_current=$(cat /sys/fs/cgroup/memory.current)
+    timestamp=$(date +%s)
+    echo "$timestamp,TOTAL,total,$cpu_total,$memory_kilobytes" >> "$OUTPUT"
 
-    inactive_file=$(awk '$1 == "inactive_file" {print $2}' \
-    /sys/fs/cgroup/memory.stat)
+    for pid_path in /proc/[0-9]*; do
+        pid="${pid_path#/proc/}"
+        [ -r "$pid_path/stat" ] || continue
 
-    docker_style_memory=$((memory_current - inactive_file))
+        process_stat=$(cat "$pid_path/stat" 2>/dev/null) || continue
 
-    memory=$(awk -v bytes="$docker_style_memory" 'BEGIN { printf "%.2fMiB", bytes / 1048576 }')
+        process_info=$(awk -v tck="$CLOCKS_PER_SECOND" '{
+            s=$0
+            open_paren = index(s, "(")
+            close_paren = match(s, /\)[^)]*$/)
+            name = substr(s, open_paren+1, close_paren-open_paren-1)
+            rest = substr(s, close_paren+1)
+            split(rest, arr, " ")
+            utime = arr[12]
+            stime = arr[13]
+            usec = ((utime+stime)/tck)*1000000
+            printf "%s\t%.0f", name, usec
+        }' <<< "$process_stat")
 
-    echo "$(date +%s),$cpu%,$memory" >> "$OUTPUT"
+        process_name="${process_info%%$'\t'*}"
+        process_cpu="${process_info##*$'\t'}"
 
-    previous_cpu=$current_cpu
+        current_cpu="${previous_cpu[$pid]:-$process_cpu}"
+        process_cpu_delta=$((process_cpu - current_cpu))
+        previous_cpu[$pid]=$process_cpu
+
+        process_cpu_formatted=$(awk -v d="$process_cpu_delta" -v t="$time_delta" 'BEGIN { v=(d*100000)/t; if (v<0) v=0; printf "%.2f", v }')
+
+        process_memory=$(awk '/^VmRSS:/ {print $2}' "$pid_path/status" 2>/dev/null)
+        [ -z "$process_memory" ] && process_memory=0
+
+        echo "$timestamp,$pid,$process_name,$process_cpu_formatted,$process_memory" >> "$OUTPUT"
+    done
+
+    previous_total_cpu=$current_total_cpu
     previous_time=$current_time
 done

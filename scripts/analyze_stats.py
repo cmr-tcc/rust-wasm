@@ -19,6 +19,12 @@ def peak_memory(samples):
     active = [parse_memory_mib(s["memory"]) for s in samples if parse_cpu_percent(s["cpu"]) > ACTIVE_CPU_THRESHOLD]
     return max(active) if active else 0.0
 
+def filter_total_usage(resource_usage):
+    return [
+        sample
+        for sample in resource_usage
+        if sample.get("pid#process_name") == "TOTAL#total"
+    ]
 
 @dataclass
 class AlgorithmStats:
@@ -53,10 +59,10 @@ def analyze(data):
             algorithm=entry["algorithm"],
             rust_mean_ms=entry["rust"]["mean_ms"],
             wasm_mean_ms=entry["wasm"]["mean_ms"],
-            rust_mem_baseline=baseline_memory(entry["rust"]["resource_usage"]),
-            rust_mem_peak=peak_memory(entry["rust"]["resource_usage"]),
-            wasm_mem_baseline=baseline_memory(entry["wasm"]["resource_usage"]),
-            wasm_mem_peak=peak_memory(entry["wasm"]["resource_usage"]),
+            rust_mem_baseline=baseline_memory(filter_total_usage(entry["rust"]["resource_usage"])),
+            rust_mem_peak=peak_memory(filter_total_usage(entry["rust"]["resource_usage"])),
+            wasm_mem_baseline=baseline_memory(filter_total_usage(entry["wasm"]["resource_usage"])),
+            wasm_mem_peak=peak_memory(filter_total_usage(entry["wasm"]["resource_usage"])),
         )
         for entry in data
     ]

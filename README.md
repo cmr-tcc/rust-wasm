@@ -26,6 +26,7 @@ chmod +x ./collect-stats.sh
 source venv/bin/activate
 pip install -r requirements.txt
 python3 ./scripts/generate_chart.py ./stats/2026-08-16_16-30.json
+python3 ./scripts/generate_chart_process.py ./stats/2026-08-16_16-30.json
 python3 ./scripts/analyze_stats.py ./stats/2026-08-16_16-30.json
 ```
 

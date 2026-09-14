@@ -21,7 +21,8 @@ def load_csv(path):
             result.append({
                 "timestamp": int(row["timestamp"]),
                 "memory": row["memory"],
-                "cpu": row["cpu"]
+                "cpu": row["cpu"],
+                "pid#process_name": f"{row['pid']}#{row['name']}"
             })
 
     return result
