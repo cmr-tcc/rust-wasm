@@ -4,19 +4,19 @@ from dataclasses import dataclass
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from utils.stats_utils import parse_cpu_percent, parse_memory_mib
+from utils.stats_utils import parse_cpu_percent, parse_memory_kib_to_mib
 
 IDLE_CPU_THRESHOLD = 10.0
 ACTIVE_CPU_THRESHOLD = 80.0
 
 
 def baseline_memory(samples):
-    idle = [parse_memory_mib(s["memory"]) for s in samples if parse_cpu_percent(s["cpu"]) < IDLE_CPU_THRESHOLD]
+    idle = [parse_memory_kib_to_mib(s["memory"]) for s in samples if parse_cpu_percent(s["cpu"]) < IDLE_CPU_THRESHOLD]
     return min(idle) if idle else 0.0
 
 
 def peak_memory(samples):
-    active = [parse_memory_mib(s["memory"]) for s in samples if parse_cpu_percent(s["cpu"]) > ACTIVE_CPU_THRESHOLD]
+    active = [parse_memory_kib_to_mib(s["memory"]) for s in samples if parse_cpu_percent(s["cpu"]) > ACTIVE_CPU_THRESHOLD]
     return max(active) if active else 0.0
 
 def filter_total_usage(resource_usage):

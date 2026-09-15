@@ -5,23 +5,7 @@ import sys
 from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
-
-
-def parse_memory_kb(value) -> float:
-    """Parse memory values stored as bare KB or Docker-style values."""
-    value = str(value)
-    match = re.fullmatch(r"([\d.]+)(KiB|MiB|GiB)?", value)
-    if not match:
-        raise ValueError(f"Invalid memory value: {value!r}")
-
-    number = float(match.group(1))
-    unit = match.group(2) or "KB"
-    multipliers = {"KB": 1, "KiB": 1, "MiB": 1024, "GiB": 1024 * 1024}
-    return number * multipliers[unit]
-
-
-def parse_cpu(value) -> float:
-    return float(str(value).replace("%", ""))
+from utils.stats_utils import parse_cpu_percent, parse_memory_kib_to_mib
 
 
 def load_data(json_path: str) -> pd.DataFrame:
@@ -47,8 +31,8 @@ def load_data(json_path: str) -> pd.DataFrame:
                         "timestamp": sample["timestamp"],
                         "pid": pid,
                         "name": name,
-                        "cpu": parse_cpu(sample["cpu"]),
-                        "memory_kb": parse_memory_kb(sample["memory"]),
+                        "cpu": parse_cpu_percent(sample["cpu"]),
+                        "memory": parse_memory_kib_to_mib(sample["memory"]),
                     }
                 )
 
@@ -78,7 +62,7 @@ def plot_metric(df: pd.DataFrame, value_col: str, ylabel: str, title: str, out_p
         else:
             ax.plot(group["t"], group[value_col], label=series_name, linewidth=1.5)
 
-    ax.set_xlabel("Time (s)")
+    ax.set_xlabel("Seconds")
     ax.set_ylabel(ylabel)
     ax.set_title(title)
     ax.grid(True, alpha=0.3)
@@ -110,16 +94,16 @@ def main():
         plot_metric(
             group,
             value_col="cpu",
-            ylabel="CPU usage (%)",
-            title=f"CPU usage over time — {algorithm} ({runtime})",
+            ylabel="CPU (%)",
+            title=f"{algorithm} - CPU Usage per Process ({"Rust" if runtime == "rust" else "WASM"})",
             out_path=os.path.join(output_dir, f"{algorithm}_cpu_{runtime}.png"),
         )
 
         plot_metric(
             group,
-            value_col="memory_kb",
-            ylabel="Memory (KB)",
-            title=f"Memory usage over time — {algorithm} ({runtime})",
+            value_col="memory",
+            ylabel="Memory (MiB)",
+            title=f"{algorithm} - Memory Usage per Process ({"Rust" if runtime == "rust" else "WASM"})",
             out_path=os.path.join(output_dir, f"{algorithm}_memory_{runtime}.png"),
         )
 

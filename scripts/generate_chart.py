@@ -5,7 +5,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 sys.path.insert(0, str(Path(__file__).parent))
-from utils.stats_utils import parse_cpu_percent, parse_memory_mib
+from utils.stats_utils import parse_cpu_percent, parse_memory_kib_to_mib
 
 if len(sys.argv) < 2:
     print("Usage: python3 scripts/generate_chart.py <json_file>")
@@ -72,7 +72,7 @@ for entry in data:
     if rust_usage:
         start_timestamp = rust_usage[0]["timestamp"]
         seconds = [sample["timestamp"] - start_timestamp for sample in rust_usage]
-        memory = [parse_memory_mib(sample["memory"]) for sample in rust_usage]
+        memory = [parse_memory_kib_to_mib(sample["memory"]) for sample in rust_usage]
 
         plt.figure(figsize=(12, 5))
         plt.plot(seconds, memory, marker="o", label="Rust", color="tab:blue")
@@ -92,7 +92,7 @@ for entry in data:
     if wasm_usage:
         start_timestamp = wasm_usage[0]["timestamp"]
         seconds = [sample["timestamp"] - start_timestamp for sample in wasm_usage]
-        memory = [parse_memory_mib(sample["memory"]) for sample in wasm_usage]
+        memory = [parse_memory_kib_to_mib(sample["memory"]) for sample in wasm_usage]
 
         plt.figure(figsize=(12, 5))
         plt.plot(seconds, memory, marker="o", label="WASM", color="tab:orange")
