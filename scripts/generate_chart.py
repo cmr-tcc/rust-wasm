@@ -75,7 +75,7 @@ for entry in data:
         memory = [parse_memory_kib_to_mib(sample["memory"]) for sample in rust_usage]
 
         plt.figure(figsize=(12, 5))
-        plt.plot(seconds, memory, marker="o", label="Rust", color="tab:blue")
+        plt.plot(seconds, memory, label="Rust", color="tab:blue")
         plt.title(f"{algorithm} - Memory Usage (Rust)")
         plt.xlabel("Seconds")
         plt.ylabel("Memory (MiB)")
@@ -95,7 +95,7 @@ for entry in data:
         memory = [parse_memory_kib_to_mib(sample["memory"]) for sample in wasm_usage]
 
         plt.figure(figsize=(12, 5))
-        plt.plot(seconds, memory, marker="o", label="WASM", color="tab:orange")
+        plt.plot(seconds, memory, label="WASM", color="tab:orange")
         plt.title(f"{algorithm} - Memory Usage (WASM)")
         plt.xlabel("Seconds")
         plt.ylabel("Memory (MiB)")
@@ -115,7 +115,7 @@ for entry in data:
         cpu = [parse_cpu_percent(sample["cpu"]) for sample in rust_usage]
 
         plt.figure(figsize=(12, 5))
-        plt.plot(seconds, cpu, marker="o", label="Rust", color="tab:blue")
+        plt.plot(seconds, cpu, label="Rust", color="tab:blue")
         plt.title(f"{algorithm} - CPU Usage (Rust)")
         plt.xlabel("Seconds")
         plt.ylabel("CPU (%)")
@@ -135,7 +135,7 @@ for entry in data:
         cpu = [parse_cpu_percent(sample["cpu"]) for sample in wasm_usage]
 
         plt.figure(figsize=(12, 5))
-        plt.plot(seconds, cpu, marker="o", label="WASM", color="tab:orange")
+        plt.plot(seconds, cpu, label="WASM", color="tab:orange")
         plt.title(f"{algorithm} - CPU Usage (WASM)")
         plt.xlabel("Seconds")
         plt.ylabel("CPU (%)")

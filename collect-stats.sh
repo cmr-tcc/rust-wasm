@@ -16,6 +16,10 @@ fi
 
 docker compose up -d
 
+# -------------------------------------------------
+# Rust
+# -------------------------------------------------
+
 CONTAINER_ID=$(docker compose ps -q bench)
 
 echo_color "Executing Rust" --yellow
@@ -30,11 +34,13 @@ docker exec "$CONTAINER_ID" kill "$(docker exec "$CONTAINER_ID" cat /tmp/resourc
 
 docker cp "$CONTAINER_ID":/tmp/resource_usage.csv ./stats/rust-stats.csv
 
-echo "$RUST_OUTPUT" >stats/rust-output.txt
+echo "$RUST_OUTPUT" > stats/rust-output.txt
 
-echo_color "Sleeping..." --yellow
+docker restart "$CONTAINER_ID"
 
-sleep 3
+# -------------------------------------------------
+# Wasm
+# -------------------------------------------------
 
 echo_color "Executing Wasm" --yellow
 

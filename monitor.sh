@@ -17,7 +17,7 @@ previous_time=$(date +%s%N)
 previous_total_cpu=$(get_total_cpu)
 
 while true; do
-    sleep 1
+    sleep 0.25 # Each iteration will take approximately 0.04 seconds
 
     current_time=$(date +%s%N)
     time_delta=$((current_time - previous_time))
@@ -60,7 +60,7 @@ while true; do
 
         process_cpu_formatted=$(awk -v d="$process_cpu_delta" -v t="$time_delta" 'BEGIN { v=(d*100000)/t; if (v<0) v=0; printf "%.2f", v }')
 
-        process_memory=$(awk '/^VmRSS:/ {print $2}' "$pid_path/status" 2>/dev/null)
+        process_memory=$(awk '/^Pss:/ {sum+=$2} END {print sum+0}' "$pid_path/smaps_rollup" 2>/dev/null)
         [ -z "$process_memory" ] && process_memory=0
 
         echo "$timestamp,$pid,$process_name,$process_cpu_formatted,$process_memory" >> "$OUTPUT"
