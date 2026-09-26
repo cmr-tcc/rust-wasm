@@ -31,6 +31,17 @@ python3 ./scripts/generate_chart_process.py ./stats/2026-08-16_16-30.json
 python3 ./scripts/analyze_stats.py ./stats/2026-08-16_16-30.json
 ```
 
+### Resultados do TCC
+
+Os valores do TCC (tabelas de tempo e memória, Apêndice A, métricas de coleta e análise de sensibilidade) são gerados a partir das coletas dos três computadores:
+
+```bash
+python3 ./scripts/analyze_stats.py \
+  ./stats/2026-09-15_15-29.json \
+  ./stats/2026-09-18_22-55.json \
+  ./stats/2026-09-19_20-59.json
+```
+
 ## Adicionando um algoritmo
 
 1. Criar `rust/src/nome_do_algoritmo.rs` com a função `pub fn run(...)`
