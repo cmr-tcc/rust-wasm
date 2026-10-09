@@ -23,6 +23,7 @@ chmod +x ./collect-stats.sh
 ## Scripts Python
 
 ```bash
+python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 python3 ./scripts/generate_chart.py ./stats/2026-08-16_16-30.json
