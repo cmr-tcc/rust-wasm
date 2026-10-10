@@ -33,14 +33,15 @@ python3 ./scripts/analyze_stats.py ./stats/2026-08-16_16-30.json
 
 ### Resultados do TCC
 
-Os valores do TCC (tabelas de tempo e memória, Apêndice A, métricas de coleta e análise de sensibilidade) são gerados a partir das coletas dos três computadores:
+Os valores do TCC (tabelas de tempo e memória, Apêndice A, métricas de coleta e análise de sensibilidade) são gerados a partir das coletas de 09/10/2026 dos três computadores, que registram o tempo de cada execução:
 
 ```bash
 python3 ./scripts/analyze_stats.py \
-  ./stats/2026-09-15_15-29.json \
-  ./stats/2026-09-18_22-55.json \
-  ./stats/2026-09-19_20-59.json
+  ./stats/2026-10-09_21-09.json \
+  ./stats/2026-10-09_21-14.json
 ```
+
+Para cada computador, o script usa a mediana das execuções de cada algoritmo e calcula o desvio padrão. O overhead é calculado por computador e consolidado pela média geométrica dos fatores; a memória é consolidada pela média aritmética. Coletas anteriores, que registram apenas o tempo médio, não são aceitas.
 
 ## Adicionando um algoritmo
 

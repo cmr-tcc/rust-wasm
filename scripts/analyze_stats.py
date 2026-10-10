@@ -1,10 +1,14 @@
 """Calcula as metricas do TCC (secao 3.4) a partir de um ou mais arquivos de stats/.
 
-Cada arquivo corresponde a um computador. Os resultados sao calculados para cada
-computador e consolidados pela media aritmetica (Eq. 3.11); o overhead
-consolidado e calculado a partir dos tempos medios consolidados.
+Cada arquivo corresponde a um computador e precisa conter os tempos de cada
+execucao (campo "times"). Para cada computador, o tempo de cada algoritmo e a
+mediana das execucoes, e o overhead e calculado a partir dessas medianas. Entre
+computadores, o fator e consolidado pela media geometrica, evitando misturar
+tempos absolutos de maquinas diferentes. A memoria, que nao depende da
+velocidade da maquina, e consolidada pela media aritmetica.
 """
 import json
+import math
 import statistics
 import sys
 from dataclasses import dataclass
@@ -13,11 +17,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from utils.stats_utils import parse_cpu_percent, parse_memory_kib_to_mib
 
-# A execucao usa uma unica thread e ocupa um nucleo inteiro, que corresponde a 100% (Eq. 3.2).
+# A execucao usa uma unica thread e ocupa um nucleo inteiro, que corresponde a 100% de CPU.
 ACTIVE_CPU_THRESHOLD = 100.0
-# k: amostras consecutivas acima do limiar que caracterizam a execucao (Eq. 3.6).
+# k: numero minimo de amostras consecutivas acima do limiar que caracterizam a execucao.
 SUSTAINED_SAMPLES = 8
-# n: ultimas amostras de repouso antes da execucao que formam o conjunto ocioso (Eq. 3.7).
+# n: ultimas amostras de repouso antes da execucao que formam o conjunto ocioso.
 IDLE_SAMPLES = 10
 # Faixas da analise de sensibilidade.
 SUSTAINED_SAMPLES_RANGE = range(7, 21)
@@ -44,7 +48,7 @@ def group_by_reading(resource_usage):
 
 
 def execution_and_idle_sets(samples, sustained_samples=SUSTAINED_SAMPLES, idle_samples=IDLE_SAMPLES):
-    """Indices do conjunto de execucao E (Eq. 3.6) e do conjunto ocioso O (Eq. 3.7)."""
+    """Indices do conjunto de execucao E e do conjunto ocioso O."""
     cpu = [parse_cpu_percent(sample["cpu"]) for sample in samples]
     active_runs = []
     index = 0
@@ -71,17 +75,71 @@ def execution_and_idle_sets(samples, sustained_samples=SUSTAINED_SAMPLES, idle_s
 def memory_metrics(resource_usage, **set_parameters):
     samples = filter_total_usage(resource_usage)
     execution, idle = execution_and_idle_sets(samples, **set_parameters)
-    memory = [parse_memory_kib_to_mib(sample["memory"]) for sample in samples]  # Eq. 3.3
-    baseline = min(memory[i] for i in idle)   # Eq. 3.8
-    peak = max(memory[i] for i in execution)  # Eq. 3.9
+    memory = [parse_memory_kib_to_mib(sample["memory"]) for sample in samples]
+    baseline = min(memory[i] for i in idle)
+    peak = max(memory[i] for i in execution)
     return baseline, peak
+
+
+def geometric_mean(values):
+    return math.exp(statistics.mean(math.log(value) for value in values))
+
+
+@dataclass
+class TimeStats:
+    times: list
+
+    @property
+    def median(self):
+        return statistics.median(self.times)
+
+    @property
+    def mean(self):
+        return statistics.mean(self.times)
+
+    @property
+    def stdev(self):
+        return statistics.stdev(self.times)  # desvio padrao amostral
+
+    @property
+    def coefficient_of_variation(self):
+        return self.stdev / self.mean * 100
 
 
 @dataclass
 class AlgorithmStats:
+    """Resultados de um algoritmo em um computador."""
     algorithm: str
-    rust_mean_ms: float
-    wasm_mean_ms: float
+    rust: TimeStats
+    wasm: TimeStats
+    rust_mem_baseline: float
+    rust_mem_peak: float
+    wasm_mem_baseline: float
+    wasm_mem_peak: float
+
+    @property
+    def slowdown_factor(self):
+        return self.wasm.median / self.rust.median
+
+    @property
+    def overhead_percent(self):
+        return (self.slowdown_factor - 1) * 100
+
+    @property
+    def rust_mem_net(self):
+        return self.rust_mem_peak - self.rust_mem_baseline
+
+    @property
+    def wasm_mem_net(self):
+        return self.wasm_mem_peak - self.wasm_mem_baseline
+
+
+@dataclass
+class ConsolidatedStats:
+    """Resultados de um algoritmo consolidados entre os computadores."""
+    algorithm: str
+    slowdown_factor: float
+    overheads_by_computer: list
     rust_mem_baseline: float
     rust_mem_peak: float
     wasm_mem_baseline: float
@@ -89,30 +147,32 @@ class AlgorithmStats:
 
     @property
     def overhead_percent(self):
-        return (self.wasm_mean_ms / self.rust_mean_ms - 1) * 100  # Eq. 3.4
-
-    @property
-    def slowdown_factor(self):
-        return self.wasm_mean_ms / self.rust_mean_ms  # Eq. 3.5
+        return (self.slowdown_factor - 1) * 100
 
     @property
     def rust_mem_net(self):
-        return self.rust_mem_peak - self.rust_mem_baseline  # Eq. 3.10
+        return self.rust_mem_peak - self.rust_mem_baseline
 
     @property
     def wasm_mem_net(self):
-        return self.wasm_mem_peak - self.wasm_mem_baseline  # Eq. 3.10
+        return self.wasm_mem_peak - self.wasm_mem_baseline
 
 
 def analyze(data, **set_parameters):
     stats = []
     for entry in data:
+        for environment in ("rust", "wasm"):
+            if not entry[environment].get("times"):
+                raise ValueError(
+                    f"{entry['algorithm']} ({environment}) nao possui os tempos de cada execucao; "
+                    "use uma coleta no formato atual"
+                )
         rust_baseline, rust_peak = memory_metrics(entry["rust"]["resource_usage"], **set_parameters)
         wasm_baseline, wasm_peak = memory_metrics(entry["wasm"]["resource_usage"], **set_parameters)
         stats.append(AlgorithmStats(
             algorithm=entry["algorithm"],
-            rust_mean_ms=entry["rust"]["mean_ms"],  # Eq. 3.1, calculada pelo benchmark
-            wasm_mean_ms=entry["wasm"]["mean_ms"],
+            rust=TimeStats(entry["rust"]["times"]),
+            wasm=TimeStats(entry["wasm"]["times"]),
             rust_mem_baseline=rust_baseline,
             rust_mem_peak=rust_peak,
             wasm_mem_baseline=wasm_baseline,
@@ -122,15 +182,15 @@ def analyze(data, **set_parameters):
 
 
 def consolidate(stats_by_computer):
-    """Media aritmetica entre os computadores (Eq. 3.11), campo a campo."""
     consolidated = []
     for per_algorithm in zip(*stats_by_computer):
-        consolidated.append(AlgorithmStats(
+        consolidated.append(ConsolidatedStats(
             algorithm=per_algorithm[0].algorithm,
+            slowdown_factor=geometric_mean([stat.slowdown_factor for stat in per_algorithm]),
+            overheads_by_computer=[stat.overhead_percent for stat in per_algorithm],
             **{
                 field: statistics.mean(getattr(stat, field) for stat in per_algorithm)
-                for field in ("rust_mean_ms", "wasm_mean_ms", "rust_mem_baseline",
-                              "rust_mem_peak", "wasm_mem_baseline", "wasm_mem_peak")
+                for field in ("rust_mem_baseline", "rust_mem_peak", "wasm_mem_baseline", "wasm_mem_peak")
             },
         ))
     return consolidated
@@ -152,21 +212,7 @@ def print_table(headers, rows, formats):
         print("  ".join([first_cell] + other_cells))
 
 
-def print_report(title, stats):
-    print(f"\n##### {title} #####")
-    print("\n=== TEMPO DE EXECUCAO ===\n")
-    print_table(
-        headers=["Algoritmo", "Rust (ms)", "Wasm (ms)", "Overhead", "Fator"],
-        rows=[(s.algorithm, s.rust_mean_ms, s.wasm_mean_ms, s.overhead_percent, s.slowdown_factor) for s in stats],
-        formats=["%s", "%.1f", "%.1f", "%.1f%%", "%.3fx"],
-    )
-    overheads = [s.overhead_percent for s in stats]
-    best = min(stats, key=lambda stat: stat.overhead_percent)
-    worst = max(stats, key=lambda stat: stat.overhead_percent)
-    # Eq. 3.12 e 3.13
-    print(f"\n  Media: {statistics.mean(overheads):.1f}%  |  Mediana: {statistics.median(overheads):.1f}%")
-    print(f"  Melhor: {best.algorithm} ({best.overhead_percent:.1f}%)  |  Pior: {worst.algorithm} ({worst.overhead_percent:.1f}%)")
-
+def print_memory_table(stats):
     print("\n=== MEMORIA (MiB) ===\n")
     print_table(
         headers=["Algoritmo", "Rust base", "Rust pico", "Rust liquido", "Wasm base", "Wasm pico", "Wasm liquido"],
@@ -177,6 +223,42 @@ def print_report(title, stats):
         ],
         formats=["%s", "%.1f", "%.1f", "%.1f", "%.1f", "%.1f", "%.1f"],
     )
+
+
+def print_computer_report(runner, stats):
+    print(f"\n##### {runner} #####")
+    print("\n=== TEMPO DE EXECUCAO (ms, 10 execucoes) ===\n")
+    print_table(
+        headers=["Algoritmo", "Rust mediana", "Rust media", "Rust DP", "Rust CV",
+                 "Wasm mediana", "Wasm media", "Wasm DP", "Wasm CV", "Overhead", "Fator"],
+        rows=[
+            (s.algorithm, s.rust.median, s.rust.mean, s.rust.stdev, s.rust.coefficient_of_variation,
+             s.wasm.median, s.wasm.mean, s.wasm.stdev, s.wasm.coefficient_of_variation,
+             s.overhead_percent, s.slowdown_factor)
+            for s in stats
+        ],
+        formats=["%s", "%.1f", "%.1f", "%.1f", "%.1f%%", "%.1f", "%.1f", "%.1f", "%.1f%%", "%.1f%%", "%.3fx"],
+    )
+    print_memory_table(stats)
+
+
+def print_consolidated_report(runners, consolidated):
+    print(f"\n##### CONSOLIDADO ({len(runners)} computadores) #####")
+    print("\n=== OVERHEAD (fator consolidado pela media geometrica) ===\n")
+    print_table(
+        headers=["Algoritmo"] + [f"Overhead {runner}" for runner in runners] + ["Overhead", "Fator"],
+        rows=[
+            (s.algorithm, *s.overheads_by_computer, s.overhead_percent, s.slowdown_factor)
+            for s in consolidated
+        ],
+        formats=["%s"] + ["%.1f%%"] * len(runners) + ["%.1f%%", "%.3fx"],
+    )
+    overheads = [s.overhead_percent for s in consolidated]
+    best = min(consolidated, key=lambda stat: stat.overhead_percent)
+    worst = max(consolidated, key=lambda stat: stat.overhead_percent)
+    print(f"\n  Entre os algoritmos: media {statistics.mean(overheads):.1f}%  |  mediana {statistics.median(overheads):.1f}%")
+    print(f"  Melhor: {best.algorithm} ({best.overhead_percent:.1f}%)  |  Pior: {worst.algorithm} ({worst.overhead_percent:.1f}%)")
+    print_memory_table(consolidated)
 
 
 def print_collection_report(datasets):
@@ -247,9 +329,9 @@ if __name__ == "__main__":
 
     stats_by_computer = [analyze(data) for _, data in datasets]
     for (runner, _), stats in zip(datasets, stats_by_computer):
-        print_report(runner, stats)
+        print_computer_report(runner, stats)
     if len(datasets) > 1:
-        print_report(f"CONSOLIDADO ({len(datasets)} computadores)", consolidate(stats_by_computer))
+        print_consolidated_report([runner for runner, _ in datasets], consolidate(stats_by_computer))
     print_collection_report(datasets)
     if len(datasets) > 1:
         print_sensitivity_report(datasets)
