@@ -18,16 +18,16 @@ function measure(fn, warmup, runs) {
         window.__benchmarkOutput += `Output: ${output}\n`;
     }
 
-    const start = performance.now();
-
+    const times = [];
     for (let i = 0; i < runs; i++) {
+        const start = performance.now();
         const output = fn();
+        const totalMs = performance.now() - start;
+        times.push(totalMs);
         window.__benchmarkOutput += `Output: ${output}\n`;
     }
 
-    const totalMs = performance.now() - start;
-
-    return Number((totalMs / runs).toFixed(3));
+    return times;
 }
 
 async function main() {
@@ -46,32 +46,32 @@ async function main() {
     switch (algorithm) {
         case 'fibonacci':
             result = {
-                mean_ms: measure(() => fibonacci(parameter), warmUp, iterations)
+                times: measure(() => fibonacci(parameter), warmUp, iterations)
             };
             break;
         case 'fannkuch_redux':
             result = {
-                mean_ms: measure(() => fannkuch_redux(parameter), warmUp, iterations)
+                times: measure(() => fannkuch_redux(parameter), warmUp, iterations)
             }
             break;
         case 'n_body':
             result = {
-                mean_ms: measure(() => n_body(parameter), warmUp, iterations)
+                times: measure(() => n_body(parameter), warmUp, iterations)
             }
             break;
         case 'spectral_norm':
             result = {
-                mean_ms: measure(() => spectral_norm(parameter), warmUp, iterations)
+                times: measure(() => spectral_norm(parameter), warmUp, iterations)
             }
             break;
         case 'mandelbrot':
             result = {
-                mean_ms: measure(() => mandelbrot(parameter), warmUp, iterations)
+                times: measure(() => mandelbrot(parameter), warmUp, iterations)
             }
             break;
         case 'fasta':
             result = {
-                mean_ms: measure(() => fasta(parameter), warmUp, iterations)
+                times: measure(() => fasta(parameter), warmUp, iterations)
             }
             break;
         default:

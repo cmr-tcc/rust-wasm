@@ -1,13 +1,13 @@
 use std::time::Instant;
 
-pub fn measure<F: FnMut()>(mut function: F, runs: usize) -> f64 {
-    let start = Instant::now();
+pub fn measure<F: FnMut()>(mut function: F, runs: usize) -> Vec<f64> {
+    let mut times = Vec::with_capacity(runs);
 
     for _ in 0..runs {
+        let start = Instant::now();
         function();
+        times.push(start.elapsed().as_secs_f64() * 1000.0);
     }
 
-    let total_ms = start.elapsed().as_micros() as f64 / 1000.0;
-
-    total_ms / runs as f64
+    times
 }

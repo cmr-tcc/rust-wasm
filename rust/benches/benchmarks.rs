@@ -2,16 +2,29 @@ use std::env;
 use std::thread;
 use std::time::Duration;
 
+fn print_measurements(times: &[f64]) {
+    let measurements = times
+        .iter()
+        .map(|time| format!("{time:.3}"))
+        .collect::<Vec<_>>()
+        .join(",");
+
+    println!(r#"{{"times":[{measurements}]}}"#);
+}
+
 fn benchmark_fibonacci(iterations: usize, parameter: u64, warm_up: usize) {
     for _ in 0..warm_up {
         rust_wasm::fibonacci::run(parameter);
     }
 
-    let mean_ms = rust_wasm::bench::measure(|| {
-        rust_wasm::fibonacci::run(parameter);
-    }, iterations);
+    let times = rust_wasm::bench::measure(
+        || {
+            rust_wasm::fibonacci::run(parameter);
+        },
+        iterations,
+    );
 
-    println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
+    print_measurements(&times);
 }
 
 fn benchmark_fannkuch_redux(iterations: usize, parameter: u64, warm_up: usize) {
@@ -19,11 +32,14 @@ fn benchmark_fannkuch_redux(iterations: usize, parameter: u64, warm_up: usize) {
         rust_wasm::fannkuch_redux::run(parameter);
     }
 
-    let mean_ms = rust_wasm::bench::measure(|| {
-        rust_wasm::fannkuch_redux::run(parameter);
-    }, iterations);
+    let times = rust_wasm::bench::measure(
+        || {
+            rust_wasm::fannkuch_redux::run(parameter);
+        },
+        iterations,
+    );
 
-    println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
+    print_measurements(&times);
 }
 
 fn benchmark_n_body(iterations: usize, parameter: u64, warm_up: usize) {
@@ -31,11 +47,14 @@ fn benchmark_n_body(iterations: usize, parameter: u64, warm_up: usize) {
         rust_wasm::n_body::run(parameter);
     }
 
-    let mean_ms = rust_wasm::bench::measure(|| {
-        rust_wasm::n_body::run(parameter);
-    }, iterations);
+    let times = rust_wasm::bench::measure(
+        || {
+            rust_wasm::n_body::run(parameter);
+        },
+        iterations,
+    );
 
-    println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
+    print_measurements(&times);
 }
 
 fn benchmark_spectral_norm(iterations: usize, parameter: u64, warm_up: usize) {
@@ -43,11 +62,14 @@ fn benchmark_spectral_norm(iterations: usize, parameter: u64, warm_up: usize) {
         rust_wasm::spectral_norm::main(parameter);
     }
 
-    let mean_ms = rust_wasm::bench::measure(|| {
-        rust_wasm::spectral_norm::main(parameter);
-    }, iterations);
+    let times = rust_wasm::bench::measure(
+        || {
+            rust_wasm::spectral_norm::main(parameter);
+        },
+        iterations,
+    );
 
-    println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
+    print_measurements(&times);
 }
 
 fn benchmark_mandelbrot(iterations: usize, parameter: u64, warm_up: usize) {
@@ -55,11 +77,14 @@ fn benchmark_mandelbrot(iterations: usize, parameter: u64, warm_up: usize) {
         rust_wasm::mandelbrot::main(parameter);
     }
 
-    let mean_ms = rust_wasm::bench::measure(|| {
-        rust_wasm::mandelbrot::main(parameter);
-    }, iterations);
+    let times = rust_wasm::bench::measure(
+        || {
+            rust_wasm::mandelbrot::main(parameter);
+        },
+        iterations,
+    );
 
-    println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
+    print_measurements(&times);
 }
 
 fn benchmark_fasta(iterations: usize, parameter: u64, warm_up: usize) {
@@ -67,17 +92,18 @@ fn benchmark_fasta(iterations: usize, parameter: u64, warm_up: usize) {
         rust_wasm::fasta::main(parameter);
     }
 
-    let mean_ms = rust_wasm::bench::measure(|| {
-        rust_wasm::fasta::main(parameter);
-    }, iterations);
+    let times = rust_wasm::bench::measure(
+        || {
+            rust_wasm::fasta::main(parameter);
+        },
+        iterations,
+    );
 
-    println!(r#"{{"mean_ms":{mean_ms:.3}}}"#);
+    print_measurements(&times);
 }
 
 fn main() {
-    let algorithm = env::args()
-        .nth(1)
-        .expect("missing algorithm argument");
+    let algorithm = env::args().nth(1).expect("missing algorithm argument");
 
     let iterations = env::args()
         .nth(2)
