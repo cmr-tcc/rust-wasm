@@ -24,8 +24,8 @@ SUSTAINED_SAMPLES = 8
 # n: ultimas amostras de repouso antes da execucao que formam o conjunto ocioso.
 IDLE_SAMPLES = 10
 # Faixas da analise de sensibilidade.
-SUSTAINED_SAMPLES_RANGE = range(7, 21)
-IDLE_SAMPLES_RANGE = range(3, 12)
+SUSTAINED_SAMPLES_RANGE = range(8, 21)
+IDLE_SAMPLES_RANGE = range(3, 18)
 
 
 def filter_total_usage(resource_usage):

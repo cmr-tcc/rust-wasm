@@ -1,7 +1,7 @@
 """Gera o grafico do fator Wasm/nativo por algoritmo usado no TCC.
 
 Cada computador aparece como um ponto (fator calculado com as medianas daquele
-computador) e o losango indica o fator consolidado pela media geometrica, o
+computador) e o traco vertical indica o fator consolidado pela media geometrica, o
 mesmo calculo de analyze_stats.py. Cada coleta e associada ao numero do
 computador no TCC pelo campo "runner", de modo que cada computador mantem a
 mesma cor e o mesmo marcador.
@@ -13,6 +13,8 @@ import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+from matplotlib.ticker import MultipleLocator
 
 sys.path.insert(0, str(Path(__file__).parent))
 from analyze_stats import analyze, consolidate
@@ -58,12 +60,10 @@ def plot(computers, stats_by_computer, consolidated, output):
                 solid_capstyle="round", zorder=1)
         for position, (computer, factor) in enumerate(zip(computers, factors)):
             ax.scatter(factor, row + offsets[position], s=MARKER_SIZES[computer], marker=COMPUTER_MARKERS[computer],
-                       color=COMPUTER_COLORS[computer], edgecolors="white", linewidths=1.2, zorder=3,
-                       label=f"Computador {computer}" if row == 0 else None)
+                       color=COMPUTER_COLORS[computer], edgecolors="white", linewidths=1.2, zorder=3)
+        # Traco vertical atras dos pontos, para nao esconder um computador com o mesmo fator.
         consolidated_factor = consolidated[index].slowdown_factor
-        ax.scatter(consolidated_factor, row, s=90, marker="D", color=TEXT_PRIMARY,
-                   edgecolors="white", linewidths=1.2, zorder=4,
-                   label="Média geométrica" if row == 0 else None)
+        ax.scatter(consolidated_factor, row, s=700, marker="|", color=TEXT_PRIMARY, linewidths=2.5, zorder=2)
         ax.annotate(format_factor(consolidated_factor), (max(factors), row), xytext=(10, 0),
                     textcoords="offset points", va="center", fontsize=9, color=TEXT_PRIMARY)
 
@@ -78,13 +78,22 @@ def plot(computers, stats_by_computer, consolidated, output):
     largest = max(stats[i].slowdown_factor for stats in stats_by_computer for i in range(len(consolidated)))
     ax.set_xlim(0.9, largest + 0.35)
     ax.set_xlabel("Fator (tempo Wasm / tempo nativo)", color=TEXT_PRIMARY)
+    ax.xaxis.set_major_locator(MultipleLocator(0.2))
     ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:.1f}".replace(".", ",")))
     ax.tick_params(colors=TEXT_SECONDARY, length=0)
     ax.grid(axis="x", color=GRID_COLOR, linewidth=0.8)
     ax.set_axisbelow(True)
     for spine in ax.spines.values():
         spine.set_visible(False)
-    ax.legend(loc="lower right", frameon=False, fontsize=9, labelcolor=TEXT_PRIMARY)
+    handles = [
+        Line2D([], [], linestyle="none", marker=COMPUTER_MARKERS[computer], markersize=8,
+               markerfacecolor=COMPUTER_COLORS[computer], markeredgecolor="white",
+               label=f"Computador {computer}")
+        for computer in computers
+    ]
+    handles.append(Line2D([], [], linestyle="none", marker="|", markersize=14, markeredgewidth=2.5,
+                          color=TEXT_PRIMARY, label="Média geométrica"))
+    ax.legend(handles=handles, loc="lower right", frameon=False, fontsize=9, labelcolor=TEXT_PRIMARY)
 
     fig.tight_layout()
     Path(output).parent.mkdir(parents=True, exist_ok=True)

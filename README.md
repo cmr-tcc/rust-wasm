@@ -38,6 +38,7 @@ Os valores do TCC (tabelas de tempo e memória, Apêndice A, métricas de coleta
 ```bash
 python3 ./scripts/analyze_stats.py \
   ./stats/2026-10-09_21-09.json \
+  ./stats/2026-10-09_21-32.json \
   ./stats/2026-10-09_21-14.json
 ```
 
@@ -46,6 +47,7 @@ O gráfico do fator Wasm/nativo por algoritmo (um ponto por computador e a médi
 ```bash
 python3 ./scripts/generate_factor_chart.py \
   ./stats/2026-10-09_21-09.json \
+  ./stats/2026-10-09_21-32.json \
   ./stats/2026-10-09_21-14.json \
   --output ./charts/tcc/fator-por-algoritmo.png
 ```
