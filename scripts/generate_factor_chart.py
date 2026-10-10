@@ -1,10 +1,11 @@
 """Gera o grafico do fator Wasm/nativo por algoritmo usado no TCC.
 
-Cada computador aparece como um ponto (fator calculado com as medianas daquele
-computador) e o traco vertical indica o fator consolidado pela media geometrica, o
-mesmo calculo de analyze_stats.py. Cada coleta e associada ao numero do
-computador no TCC pelo campo "runner", de modo que cada computador mantem a
-mesma cor e o mesmo marcador.
+Para cada algoritmo ha uma coluna vertical por computador (fator calculado com
+as medianas daquele computador), e o traco horizontal indica o fator
+consolidado pela media geometrica, o mesmo calculo de analyze_stats.py. As
+colunas partem de 1,0, que corresponde ao mesmo tempo nos dois ambientes. Cada
+coleta e associada ao numero do computador no TCC pelo campo "runner", de modo
+que cada computador mantem a mesma cor e a mesma textura.
 
 Uso: python3 scripts/generate_factor_chart.py <json_file> [<json_file> ...] [--output caminho.png]
 """
@@ -14,6 +15,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
 from matplotlib.ticker import MultipleLocator
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -25,14 +27,11 @@ DEFAULT_OUTPUT = "charts/tcc/fator-por-algoritmo.png"
 COMPUTER_BY_RUNNER = {"Mateus": 1, "Raissa": 2, "Carlos": 3}
 # Paleta categorica validada para ate 3 series (todas as combinacoes de pares).
 COMPUTER_COLORS = {1: "#2a78d6", 2: "#eb6834", 3: "#1baf7a"}
-# Formato do marcador como codificacao secundaria (impressao em escala de cinza e daltonismo).
-COMPUTER_MARKERS = {1: "o", 2: "s", 3: "^"}
-# O triangulo ocupa menos area que os demais marcadores com o mesmo tamanho.
-MARKER_SIZES = {1: 55, 2: 50, 3: 75}
+# Textura como codificacao secundaria (impressao em escala de cinza e daltonismo).
+COMPUTER_HATCHES = {1: "", 2: "////", 3: "...."}
 TEXT_PRIMARY = "#0b0b0b"
 TEXT_SECONDARY = "#52514e"
 GRID_COLOR = "#e4e3df"
-RANGE_COLOR = "#b5b4ae"
 
 ALGORITHM_LABELS = {
     "fannkuch_redux": "fannkuch-redux",
@@ -48,52 +47,49 @@ def format_factor(value):
 
 
 def plot(computers, stats_by_computer, consolidated, output):
-    # Algoritmo com maior fator no topo.
+    # Algoritmos em ordem crescente de fator, da esquerda para a direita.
     order = sorted(range(len(consolidated)), key=lambda i: consolidated[i].slowdown_factor)
     computer_count = len(stats_by_computer)
-    offsets = [(i - (computer_count - 1) / 2) * 0.14 for i in range(computer_count)]
+    bar_width = 0.8 / computer_count
+    offsets = [(i - (computer_count - 1) / 2) * bar_width for i in range(computer_count)]
 
-    fig, ax = plt.subplots(figsize=(8, 4.2))
-    for row, index in enumerate(order):
-        factors = [stats[index].slowdown_factor for stats in stats_by_computer]
-        ax.plot([min(factors), max(factors)], [row, row], color=RANGE_COLOR, linewidth=2,
-                solid_capstyle="round", zorder=1)
-        for position, (computer, factor) in enumerate(zip(computers, factors)):
-            ax.scatter(factor, row + offsets[position], s=MARKER_SIZES[computer], marker=COMPUTER_MARKERS[computer],
-                       color=COMPUTER_COLORS[computer], edgecolors="white", linewidths=1.2, zorder=3)
-        # Traco vertical atras dos pontos, para nao esconder um computador com o mesmo fator.
+    fig, ax = plt.subplots(figsize=(8, 4.4))
+    for column, index in enumerate(order):
+        for position, (computer, stats) in enumerate(zip(computers, stats_by_computer)):
+            factor = stats[index].slowdown_factor
+            ax.bar(column + offsets[position], factor - 1.0, bottom=1.0, width=bar_width,
+                   color=COMPUTER_COLORS[computer], hatch=COMPUTER_HATCHES[computer],
+                   edgecolor="white", linewidth=1, zorder=2)
         consolidated_factor = consolidated[index].slowdown_factor
-        ax.scatter(consolidated_factor, row, s=700, marker="|", color=TEXT_PRIMARY, linewidths=2.5, zorder=2)
-        ax.annotate(format_factor(consolidated_factor), (max(factors), row), xytext=(10, 0),
-                    textcoords="offset points", va="center", fontsize=9, color=TEXT_PRIMARY)
+        group_half_width = bar_width * computer_count / 2
+        ax.hlines(consolidated_factor, column - group_half_width, column + group_half_width,
+                  color=TEXT_PRIMARY, linewidth=2.5, zorder=3)
+        group_top = max(stats[index].slowdown_factor for stats in stats_by_computer)
+        ax.annotate(format_factor(consolidated_factor), (column, group_top), xytext=(0, 6),
+                    textcoords="offset points", ha="center", va="bottom", fontsize=9, color=TEXT_PRIMARY)
 
-    ax.axvline(1.0, color=TEXT_SECONDARY, linewidth=1, linestyle="--", zorder=0)
-    ax.annotate("mesmo tempo\nnos dois ambientes", (1.0, len(order) - 0.5), xytext=(6, 0),
-                textcoords="offset points", va="top", fontsize=8, color=TEXT_SECONDARY)
-
-    ax.set_yticks(range(len(order)))
-    ax.set_yticklabels([ALGORITHM_LABELS.get(consolidated[i].algorithm, consolidated[i].algorithm)
+    ax.set_xticks(range(len(order)))
+    ax.set_xticklabels([ALGORITHM_LABELS.get(consolidated[i].algorithm, consolidated[i].algorithm)
                         for i in order], color=TEXT_PRIMARY)
-    ax.set_ylim(-0.6, len(order) - 0.4)
     largest = max(stats[i].slowdown_factor for stats in stats_by_computer for i in range(len(consolidated)))
-    ax.set_xlim(0.9, largest + 0.35)
-    ax.set_xlabel("Fator (tempo Wasm / tempo nativo)", color=TEXT_PRIMARY)
-    ax.xaxis.set_major_locator(MultipleLocator(0.2))
-    ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:.1f}".replace(".", ",")))
+    ax.set_ylim(1.0, largest + 0.25)
+    ax.set_ylabel("Fator (tempo Wasm / tempo nativo)", color=TEXT_PRIMARY)
+    ax.yaxis.set_major_locator(MultipleLocator(0.2))
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f"{value:.1f}".replace(".", ",")))
     ax.tick_params(colors=TEXT_SECONDARY, length=0)
-    ax.grid(axis="x", color=GRID_COLOR, linewidth=0.8)
+    ax.grid(axis="y", color=GRID_COLOR, linewidth=0.8)
     ax.set_axisbelow(True)
-    for spine in ax.spines.values():
-        spine.set_visible(False)
+    for name, spine in ax.spines.items():
+        spine.set_visible(name == "bottom")
+    ax.spines["bottom"].set_color(TEXT_SECONDARY)
+
     handles = [
-        Line2D([], [], linestyle="none", marker=COMPUTER_MARKERS[computer], markersize=8,
-               markerfacecolor=COMPUTER_COLORS[computer], markeredgecolor="white",
-               label=f"Computador {computer}")
+        Patch(facecolor=COMPUTER_COLORS[computer], hatch=COMPUTER_HATCHES[computer], edgecolor="white",
+              label=f"Computador {computer}")
         for computer in computers
     ]
-    handles.append(Line2D([], [], linestyle="none", marker="|", markersize=14, markeredgewidth=2.5,
-                          color=TEXT_PRIMARY, label="Média geométrica"))
-    ax.legend(handles=handles, loc="lower right", frameon=False, fontsize=9, labelcolor=TEXT_PRIMARY)
+    handles.append(Line2D([], [], color=TEXT_PRIMARY, linewidth=2.5, label="Média geométrica"))
+    ax.legend(handles=handles, loc="upper left", frameon=False, fontsize=9, labelcolor=TEXT_PRIMARY)
 
     fig.tight_layout()
     Path(output).parent.mkdir(parents=True, exist_ok=True)
