@@ -41,7 +41,16 @@ python3 ./scripts/analyze_stats.py \
   ./stats/2026-10-09_21-14.json
 ```
 
-Para cada computador, o script usa a mediana das execuções de cada algoritmo e calcula o desvio padrão. O overhead é calculado por computador e consolidado pela média geométrica dos fatores; a memória é consolidada pela média aritmética. Coletas anteriores, que registram apenas o tempo médio, não são aceitas.
+O gráfico do fator Wasm/nativo por algoritmo (um ponto por computador e a média geométrica) é gerado a partir das mesmas coletas:
+
+```bash
+python3 ./scripts/generate_factor_chart.py \
+  ./stats/2026-10-09_21-09.json \
+  ./stats/2026-10-09_21-14.json \
+  --output ./charts/tcc/fator-por-algoritmo.png
+```
+
+Para cada computador, o `analyze_stats.py` usa a mediana das execuções de cada algoritmo e calcula o desvio padrão. O overhead é calculado por computador e consolidado pela média geométrica dos fatores; a memória é consolidada pela média aritmética. Coletas anteriores, que registram apenas o tempo médio, não são aceitas.
 
 ## Adicionando um algoritmo
 
